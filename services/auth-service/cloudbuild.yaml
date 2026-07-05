@@ -1,0 +1,44 @@
+steps:
+  # Build image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/auth-service:$SHORT_SHA', '-f', 'services/auth-service/Dockerfile', 'services/auth-service']
+
+  # Push ke Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/auth-service:$SHORT_SHA']
+
+  # Deploy ke Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'acaris-auth'
+    - '--image'
+    - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/auth-service:$SHORT_SHA'
+    - '--region'
+    - 'asia-southeast2'
+    - '--platform'
+    - 'managed'
+    - '--allow-unauthenticated'
+
+    # ENV non-sensitif
+    - '--set-env-vars=NODE_ENV=production'
+    - '--set-env-vars=DB_HOST=34.101.86.214'
+    - '--set-env-vars=DB_PORT=5432'
+    - '--set-env-vars=DB_USER=acaris_user'
+    - '--set-env-vars=DB_NAME=acaris_db'
+    - '--set-env-vars=EMAIL_USER=marsneedduitbanget@gmail.com'
+    - '--set-env-vars=GCS_BUCKET=acaris-storage'
+
+    # SECRETS — diambil dari Google Secret Manager
+    - '--set-secrets=JWT_SECRET=JWT_SECRET:latest'
+    - '--set-secrets=DB_PASSWORD=DB_PASSWORD:latest'
+    - '--set-secrets=EMAIL_PASS=EMAIL_PASS:latest'
+    - '--set-secrets=REDIS_URL=REDIS_URL:latest'
+
+images:
+  - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/auth-service:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

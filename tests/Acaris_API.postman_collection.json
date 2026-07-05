@@ -1,0 +1,2644 @@
+{
+  "info": {
+    "_postman_id": "e162ed10-0931-4db6-944f-14ef086aaa17",
+    "name": "Acaris API",
+    "description": "Postman Collection untuk Acaris Backend API — Auth, Document, User",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39627887",
+    "_collection_link": "https://go.postman.co/collection/39627887-e162ed10-0931-4db6-944f-14ef086aaa17?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Folder autentikasi, registrasi akun, verifikasi OTP, dan manajemen password.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "  console.log('Token tersimpan:', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahasiswa@dummy.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login langsung — mengembalikan token JWT tanpa OTP."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Kode Kelas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kode_kelas\": \"DSN-ABCD\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/validate-kode-kelas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "validate-kode-kelas"
+              ]
+            },
+            "description": "Step 1 multi-step register Android — validasi kode kelas sebelum user isi data diri. Mengembalikan nama dosen PA jika kode valid."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Mahasiswa",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Mahasiswa Dummy",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "mahasiswa@dummy.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                },
+                {
+                  "key": "npm_nip",
+                  "value": "DUMMYMAHASISWA",
+                  "type": "text"
+                },
+                {
+                  "key": "angkatan",
+                  "value": "2021",
+                  "type": "text"
+                },
+                {
+                  "key": "kode_kelas",
+                  "value": "DSN-ABCD",
+                  "type": "text"
+                },
+                {
+                  "key": "ipk",
+                  "value": "3.82",
+                  "type": "text"
+                },
+                {
+                  "key": "current_semester",
+                  "value": "8",
+                  "type": "text"
+                },
+                {
+                  "key": "profile_picture",
+                  "type": "file",
+                  "description": "Opsional — file gambar (JPG, PNG, WEBP)",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/mahasiswa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register",
+                "mahasiswa"
+              ]
+            },
+            "description": "Register akun mahasiswa. Gunakan multipart/form-data. profile_picture opsional. Setelah sukses, OTP dikirim ke email."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Dosen",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Dosen Dummy",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "dosen@dummy.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                },
+                {
+                  "key": "npm_nip",
+                  "value": "DUMMYDOSEN",
+                  "type": "text"
+                },
+                {
+                  "key": "profile_picture",
+                  "type": "file",
+                  "description": "Opsional — file gambar (jpg/png)",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/dosen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register",
+                "dosen"
+              ]
+            },
+            "description": "Register akun dosen. Profile picture opsional (multipart/form-data)."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Register OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "  console.log('Token tersimpan:', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahasiswa@dummy.com\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-register-otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-register-otp"
+              ]
+            },
+            "description": "Verifikasi OTP setelah register. Mengembalikan token JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahasiswa@dummy.com\",\n  \"type\": \"register\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/resend-otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resend-otp"
+              ]
+            },
+            "description": "Kirim ulang OTP. type: 'register' atau 'reset_password'."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahasiswa@dummy.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Kirim OTP reset password ke email. Selalu return success (tidak bocorkan info email terdaftar atau tidak)."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Reset OTP (Step 2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahasiswa@dummy.com\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-reset-otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-reset-otp"
+              ]
+            },
+            "description": "Step 2 flow lupa password — validasi OTP tanpa menghabiskannya. OTP tetap aktif untuk dipakai di /reset-password (step 3)."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahasiswa@dummy.com\",\n  \"code\": \"123456\",\n  \"new_password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Reset password menggunakan OTP yang dikirim ke email."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"password123\",\n  \"new_password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
+            "description": "Ubah password untuk user yang sudah login. Butuh Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout — JWT stateless, hapus token di sisi client."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Document",
+      "description": "Folder pengelolaan berkas dokumen bimbingan mahasiswa (KRS, KHS, Transkrip).",
+      "item": [
+        {
+          "name": "Get Dokumen (List)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/document/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "document",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "document_type",
+                  "value": "krs",
+                  "description": "Filter: krs | khs | transkrip (opsional)",
+                  "disabled": true
+                },
+                {
+                  "key": "semester",
+                  "value": "1",
+                  "description": "Filter by semester (opsional)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Ambil semua dokumen milik mahasiswa, dikelompokkan per type (krs, khs, transkrip). Bisa difilter dengan query param ?document_type=krs atau ?semester=1."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Dokumen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "File PDF wajib diisi",
+                  "value": ""
+                },
+                {
+                  "key": "document_type",
+                  "value": "krs",
+                  "type": "text",
+                  "description": "krs | khs | transkrip"
+                },
+                {
+                  "key": "semester",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Wajib untuk krs/khs. Tidak perlu untuk transkrip."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/document/upload",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "document",
+                "upload"
+              ]
+            },
+            "description": "Upload dokumen KRS/KHS/Transkrip. Hanya mahasiswa. Field 'file' (PDF) wajib ada."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Dokumen",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "File PDF pengganti",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/document/update/:document_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "document",
+                "update",
+                ":document_id"
+              ],
+              "variable": [
+                {
+                  "key": "document_id",
+                  "value": "1",
+                  "description": "ID dokumen yang ingin diupdate"
+                }
+              ]
+            },
+            "description": "Replace/update file dokumen yang sudah ada. Hanya milik user sendiri."
+          },
+          "response": []
+        },
+        {
+          "name": "Check Kelengkapan Dokumen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/document/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "document",
+                "check"
+              ]
+            },
+            "description": "Cek kelengkapan dokumen KRS dan KHS per semester. Hanya mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Dokumen",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/document/delete/:document_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "document",
+                "delete",
+                ":document_id"
+              ],
+              "variable": [
+                {
+                  "key": "document_id",
+                  "value": "1",
+                  "description": "ID dokumen yang ingin dihapus"
+                }
+              ]
+            },
+            "description": "Hapus dokumen milik mahasiswa. File juga dihapus dari GCS. Hanya bisa hapus dokumen milik sendiri."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Semua Dokumen Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "document_type",
+                  "value": "krs",
+                  "description": "krs | khs | transkrip",
+                  "disabled": true
+                },
+                {
+                  "key": "semester",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "user_id",
+                  "value": "5",
+                  "description": "Filter by mahasiswa",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Monitor semua dokumen yang diupload mahasiswa. Filter opsional by type, semester, user_id."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Statistik Dokumen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/documents/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "documents",
+                "stats"
+              ]
+            },
+            "description": "Ringkasan statistik: total mahasiswa yang upload, total KRS, KHS, dan Transkrip."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "description": "Folder data profil dan dashboard global.",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "profile"
+              ]
+            },
+            "description": "Ambil profil lengkap. Semua role dapat profile_picture URL.\n\nMahasiswa: tambah angkatan, ipk, current_semester, is_dokumen_lengkap, dan objek documents { krs: [...], khs: [...], transkrip: {...} }. is_dokumen_lengkap true jika Transkrip ada, KRS lengkap dari semester 1 sampai current_semester - 1, dan KHS lengkap dari semester 1 sampai current_semester - 1.\nDosen: tambah kode_kelas."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Data Diri (Teks)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nama Baru\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "profile"
+              ]
+            },
+            "description": "Update data teks saja (nama, dll). Body: application/json. Ringan dan cepat, tidak ada upload file."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Foto Profil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "profile_picture",
+                  "type": "file",
+                  "description": "File gambar (JPG, PNG, WEBP) — max 2MB",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/user/profile/photo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "profile",
+                "photo"
+              ]
+            },
+            "description": "Upload foto profil baru. multipart/form-data, field: profile_picture.\nResponse mengembalikan profile_picture URL terbaru — langsung pakai untuk refresh foto di Android."
+          },
+          "response": []
+        },
+        {
+          "name": "Akses Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/mahasiswa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "mahasiswa"
+              ]
+            },
+            "description": "Hanya bisa diakses oleh role mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "Akses Dosen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/dosen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "dosen"
+              ]
+            },
+            "description": "Hanya bisa diakses oleh role dosen."
+          },
+          "response": []
+        },
+        {
+          "name": "Akses Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "admin"
+              ]
+            },
+            "description": "Hanya bisa diakses oleh role admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard (Admin & Dosen)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "dashboard"
+              ]
+            },
+            "description": "Bisa diakses oleh admin dan dosen."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Semua Pengguna",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "mahasiswa",
+                  "description": "mahasiswa | dosen | admin",
+                  "disabled": true
+                },
+                {
+                  "key": "is_verified",
+                  "value": "false",
+                  "description": "true | false",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "budi",
+                  "description": "Cari by nama, email, atau npm_nip",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List semua pengguna. Filter: role, is_verified, search."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Riwayat Chatbot Mahasiswa (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId/chatbot",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId",
+                "chatbot"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Admin mengambil daftar riwayat sesi chatbot mahasiswa. Struktur data sama seperti GET /chatbot/history milik mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Detail Chatbot Mahasiswa (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId/chatbot/:sessionId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId",
+                "chatbot",
+                ":sessionId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                },
+                {
+                  "key": "sessionId",
+                  "value": "S-TEST-001"
+                }
+              ]
+            },
+            "description": "Admin mengambil detail percakapan chatbot mahasiswa. Struktur data sama seperti GET /chatbot/history/:session_id milik mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Update Status Akun",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_verified\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Aktifkan (true) atau nonaktifkan (false) akun pengguna."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Hapus Akun",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Hapus akun pengguna. Tidak bisa hapus akun admin lain atau diri sendiri."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Scheduling",
+      "description": "Folder booking bimbingan dan slot konsultasi dosen PA.",
+      "item": [
+        {
+          "name": "[Dosen] Get Jadwal Saya (Kalender)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/my?month=4&year=2026",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "my"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "4",
+                  "description": "Opsional — filter bulan (1-12)"
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "description": "Opsional — filter tahun"
+                }
+              ]
+            },
+            "description": "Dosen ambil semua jadwal miliknya untuk ditampilkan di kalender. Filter opsional by bulan & tahun."
+          },
+          "response": []
+        },
+        {
+          "name": "[Dosen] Tambah Jadwal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tanggal\": \"2026-04-20\",\n  \"waktu_mulai\": \"09:00\",\n  \"waktu_selesai\": \"10:00\",\n  \"kuota\": 5,\n  \"keterangan\": \"Bimbingan TA rutin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedule",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule"
+              ]
+            },
+            "description": "Dosen tambah slot jadwal bimbingan baru. Status otomatis 'tersedia'."
+          },
+          "response": []
+        },
+        {
+          "name": "[Dosen] Edit Jadwal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tanggal\": \"2026-04-21\",\n  \"waktu_mulai\": \"10:00\",\n  \"waktu_selesai\": \"11:00\",\n  \"kuota\": 3,\n  \"keterangan\": \"Jadwal diubah\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedule/:schedule_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                ":schedule_id"
+              ],
+              "variable": [
+                {
+                  "key": "schedule_id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Dosen edit jadwal. Tidak bisa edit jadwal yang sudah penuh atau kuota baru < booking aktif."
+          },
+          "response": []
+        },
+        {
+          "name": "[Dosen] Hapus Jadwal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/:schedule_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                ":schedule_id"
+              ],
+              "variable": [
+                {
+                  "key": "schedule_id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Dosen hapus jadwal. Tidak bisa hapus jika sudah ada booking aktif."
+          },
+          "response": []
+        },
+        {
+          "name": "[Dosen] Lihat Daftar Booking Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "jadwal_id",
+                  "value": "1",
+                  "description": "Opsional — filter per jadwal",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Dosen lihat semua mahasiswa yang sudah booking. Bisa filter per jadwal_id."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] Get Jadwal Tersedia Dosen PA",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/available?month=4&year=2026",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "available"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "4",
+                  "description": "Opsional"
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "description": "Opsional"
+                }
+              ]
+            },
+            "description": "Mahasiswa lihat jadwal dosen PA-nya yang masih tersedia dan kuota > 0. Otomatis filter by dosen_pa_id dari profil mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa/Dosen] Batalkan Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/bookings/:booking_id/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "bookings",
+                ":booking_id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "booking_id",
+                  "value": "1",
+                  "description": "ID booking yang ingin dibatalkan"
+                }
+              ]
+            },
+            "description": "Batalkan booking. Kuota jadwal otomatis dikembalikan (+1) dan status jadwal kembali 'tersedia'.\n\nMahasiswa: hanya bisa batalkan booking miliknya.\nDosen: bisa batalkan booking di jadwalnya."
+          },
+          "response": []
+        },
+        {
+          "name": "[Dosen & Mahasiswa] GET Monthly — Tanggal yang ada jadwal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/monthly?year=2026&month=4",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "monthly"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "description": "Tahun (wajib)"
+                },
+                {
+                  "key": "month",
+                  "value": "4",
+                  "description": "Bulan 1-12 (wajib)"
+                }
+              ]
+            },
+            "description": "Ambil daftar tanggal yang ada jadwalnya dalam satu bulan.\n\nDosen: semua tanggal + jumlah slot + total kuota tersisa.\nMahasiswa: hanya tanggal yang masih ada slot tersedia (kuota > 0, tanggal >= hari ini).\n\nResponse: { dates: [{ tanggal, jumlah_slot, total_kuota_tersisa }] }"
+          },
+          "response": []
+        },
+        {
+          "name": "[Dosen & Mahasiswa] GET Daily — Detail slot per tanggal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/daily?date=2026-04-17",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "daily"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-04-17",
+                  "description": "Format YYYY-MM-DD (wajib)"
+                }
+              ]
+            },
+            "description": "Ambil semua slot jadwal pada tanggal tertentu.\n\nDosen: semua slot + daftar mahasiswa yang booking per slot ({ bookings: [...] }).\nMahasiswa: semua slot milik dosen PA-nya, tanpa data booking orang lain.\n\nResponse: { date, total_slot, slots: [{ id, waktu_mulai, waktu_selesai, kuota, kuota_tersisa, ... }] }"
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] Booking Jadwal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jadwal_id\": 1,\n  \"catatan\": \"Mau konsultasi bab 3\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedule/book",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "book"
+              ]
+            },
+            "description": "Mahasiswa booking slot jadwal dosen PA. Status booking langsung 'terkonfirmasi' (tidak ada status menunggu). Backend cek kuota real-time, cek duplikat, lalu kurangi kuota_tersisa secara atomic."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] Riwayat Booking Saya",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/my-bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "my-bookings"
+              ]
+            },
+            "description": "Mahasiswa lihat semua riwayat booking miliknya beserta status (terkonfirmasi / dibatalkan)."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] GET Monthly — Kalender Bulanan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/mahasiswa/monthly?year=2026&month=4",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "mahasiswa",
+                "monthly"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                },
+                {
+                  "key": "month",
+                  "value": "4"
+                }
+              ]
+            },
+            "description": "Kalender bulanan mahasiswa. Status per slot: 'Tersedia', 'Penuh', atau 'Di-booking' (jika mahasiswa ini sudah booking slot tersebut). Dosen PA dideteksi otomatis dari token."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] GET Daily — Detail Harian",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/mahasiswa/daily?date=2026-04-22",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "mahasiswa",
+                "daily"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-04-22"
+                }
+              ]
+            },
+            "description": "Detail slot per hari. Tiap slot ada booking_id dan mahasiswa_agenda jika mahasiswa sudah booking. Slot yang belum di-booking: booking_id=null, mahasiswa_agenda=null."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] POST Book — Submit Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schedule_id\": 1,\n  \"agenda\": \"Bahas Bab 1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedule/mahasiswa/book",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "mahasiswa",
+                "book"
+              ]
+            },
+            "description": "Submit booking. Backend validasi: hanya 1 slot per hari, hanya jadwal dosen PA sendiri, kuota tersedia. Field: schedule_id (wajib), agenda (opsional)."
+          },
+          "response": []
+        },
+        {
+          "name": "[Mahasiswa] GET History — Riwayat Booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/mahasiswa/bookings/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                "mahasiswa",
+                "bookings",
+                "history"
+              ]
+            },
+            "description": "Riwayat booking: jadwal yang sudah lewat (tanggal < hari ini) atau dibatalkan. Format sama dengan daily, status: 'selesai' atau 'dibatalkan'."
+          },
+          "response": []
+        },
+        {
+          "name": "[Shared] Get Detail Jadwal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedule/:schedule_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedule",
+                ":schedule_id"
+              ],
+              "variable": [
+                {
+                  "key": "schedule_id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Ambil detail satu jadwal. Bisa diakses dosen (hanya miliknya) dan mahasiswa (hanya jadwal dosen PA-nya)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dosen – Monitoring Mahasiswa",
+      "description": "Folder pemantauan kemajuan akademik mahasiswa bagi Dosen PA.",
+      "item": [
+        {
+          "name": "GET Dashboard Dosen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dosen/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "dashboard"
+              ]
+            },
+            "description": "Dashboard dosen. Role: dosen only.\n\nResponse fields:\n- nama_dosen, nip_dosen, foto_dosen, kode_kelas\n- jumlah_mahasiswa_bimbingan, bimbingan_hari_ini, bimbingan_semester_ini (semua int)\n- jadwal_minggu_ini: jadwal 7 hari ke depan, tiap item punya array mahasiswa []\n- kalender_bimbingan: [{date YYYY-MM-DD, status: booked|available}]\n- top_mahasiswa_bimbingan: maksimal 5 mahasiswa bimbingan dosen login, urut total bimbingan semester ini\n- top_mahasiswa_chatbot: maksimal 5 mahasiswa bimbingan dosen login, urut total sesi chatbot semester ini"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Daftar Mahasiswa Bimbingan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dosen/mahasiswa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "mahasiswa"
+              ]
+            },
+            "description": "Ambil daftar mahasiswa PA dosen yang login. ID dosen diambil dari Bearer Token."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Detail & Dokumen Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dosen/mahasiswa/:mahasiswaId/detail",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "mahasiswa",
+                ":mahasiswaId",
+                "detail"
+              ],
+              "variable": [
+                {
+                  "key": "mahasiswaId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Profil lengkap + semua dokumen (KRS, KHS, Transkrip) mahasiswa. IPK dikembalikan sebagai String. Hanya bisa akses mahasiswa bimbingan sendiri."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Riwayat Bimbingan Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dosen/mahasiswa/:mahasiswaId/history-bimbingan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "mahasiswa",
+                ":mahasiswaId",
+                "history-bimbingan"
+              ],
+              "variable": [
+                {
+                  "key": "mahasiswaId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Semua riwayat booking bimbingan mahasiswa tersebut. Status: 'selesai' (lewat), 'menunggu' (upcoming), 'dibatalkan'."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Riwayat Chatbot Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dosen/mahasiswa/:mahasiswaId/chatbot",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "mahasiswa",
+                ":mahasiswaId",
+                "chatbot"
+              ],
+              "variable": [
+                {
+                  "key": "mahasiswaId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Dosen mengambil daftar riwayat sesi chatbot mahasiswa bimbingannya. Struktur data sama seperti GET /chatbot/history milik mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Detail Chatbot Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dosen/mahasiswa/:mahasiswaId/chatbot/:sessionId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "mahasiswa",
+                ":mahasiswaId",
+                "chatbot",
+                ":sessionId"
+              ],
+              "variable": [
+                {
+                  "key": "mahasiswaId",
+                  "value": "1"
+                },
+                {
+                  "key": "sessionId",
+                  "value": "S-TEST-001"
+                }
+              ]
+            },
+            "description": "Dosen mengambil detail percakapan chatbot mahasiswa bimbingannya. Struktur data sama seperti GET /chatbot/history/:session_id milik mahasiswa."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Isi Keterangan Dosen",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keterangan\": \"Lanjut kerjakan Bab 4\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dosen/bimbingan/:bookingId/keterangan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dosen",
+                "bimbingan",
+                ":bookingId",
+                "keterangan"
+              ],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Dosen isi feedback/catatan setelah sesi bimbingan. Hanya bisa update booking di jadwal miliknya sendiri."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Folder menu administrator sistem Acaris.",
+      "item": [
+        {
+          "name": "GET Dashboard Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ]
+            },
+            "description": "Dashboard admin untuk ringkasan entitas aktif dan bimbingan semester ini.\n\nResponse data:\n- nama_admin, nip_admin, foto_admin\n- total_mahasiswa, total_dosen, total_bimbingan\n- total_chatbot: total sesi chatbot mahasiswa semester ini\n- top_dosen_bimbingan: maksimal 5 data\n- top_mahasiswa_bimbingan: maksimal 5 data\n- top_mahasiswa_chatbot: maksimal 5 mahasiswa, urut total sesi chatbot semester ini"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Knowledge Base",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/knowledge-base",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "knowledge-base"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Jadwal",
+                  "description": "Opsional: Peraturan Akademik | Jadwal | Kurikulum | Peraturan Rektor | KKNI | Kalender Akademik",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "pedoman",
+                  "description": "Opsional: cari berdasarkan judul dokumen",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Ambil semua dokumen knowledge base.\n\nFilter opsional:\n- ?category=Jadwal\n- ?search=pedoman\n\nResponse fields per item:\nid, title, file_name, file_url, category, uploaded_at, updated_at"
+          },
+          "response": []
+        },
+        {
+          "name": "POST Upload Knowledge Base",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Pedoman Akademik Unila 2026",
+                  "type": "text",
+                  "description": "Judul dokumen (wajib)"
+                },
+                {
+                  "key": "category",
+                  "value": "Peraturan Akademik",
+                  "type": "text",
+                  "description": "Wajib: Peraturan Akademik | Jadwal | Kurikulum | Peraturan Rektor | KKNI | Kalender Akademik"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "File PDF (wajib, maks 50MB)",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/knowledge-base",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "knowledge-base"
+              ]
+            },
+            "description": "Upload dokumen PDF baru. Content-Type: multipart/form-data.\n\nField wajib: title, category, file\nKategori valid: Peraturan Akademik | Jadwal | Kurikulum | Peraturan Rektor | KKNI | Kalender Akademik\n\nResponse: id, title, file_name, file_url, category, uploaded_at, updated_at"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Update Knowledge Base",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Pedoman Akademik Unila 2026 (Revisi)",
+                  "type": "text",
+                  "description": "Opsional: ubah judul dokumen"
+                },
+                {
+                  "key": "category",
+                  "value": "Peraturan Akademik",
+                  "type": "text",
+                  "description": "Opsional: Peraturan Akademik | Jadwal | Kurikulum | Peraturan Rektor | KKNI | Kalender Akademik"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Opsional — jika dikirim, file lama di GCS akan ditimpa",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/knowledge-base/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "knowledge-base",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Update metadata (title/category) dan/atau ganti file PDF.\nSemua field opsional. updated_at otomatis diperbarui.\n\nResponse: id, title, file_name, file_url, category, uploaded_at, updated_at"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Knowledge Base",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/knowledge-base/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "knowledge-base",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Hapus dokumen dari database dan otomatis hapus file dari GCS."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Create Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Admin Baru",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "newadmin@dummy.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                },
+                {
+                  "key": "npm_nip",
+                  "value": "DUMMYNEWADMIN",
+                  "type": "text"
+                },
+                {
+                  "key": "profile_picture",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "admin"
+              ]
+            },
+            "description": "Admin membuat akun administrator baru."
+          }
+        },
+        {
+          "name": "PUT Update User Data",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Mahasiswa Dummy Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "angkatan",
+                  "value": "2020",
+                  "type": "text"
+                },
+                {
+                  "key": "current_semester",
+                  "value": "8",
+                  "type": "text"
+                },
+                {
+                  "key": "ipk",
+                  "value": "3.85",
+                  "type": "text"
+                },
+                {
+                  "key": "profile_picture",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "26",
+                  "description": "ID User (Mahasiswa/Dosen/Admin)"
+                }
+              ]
+            },
+            "description": "Admin memperbarui data diri, IPK, semester, atau foto profil user tertentu."
+          }
+        },
+        {
+          "name": "GET Dokumen Mahasiswa Tertentu (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId/documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId",
+                "documents"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "26",
+                  "description": "ID Mahasiswa"
+                }
+              ]
+            },
+            "description": "Admin melihat daftar seluruh dokumen akademik milik mahasiswa tertentu."
+          }
+        },
+        {
+          "name": "POST Upload Dokumen Mahasiswa (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "document_type",
+                  "value": "krs",
+                  "type": "text"
+                },
+                {
+                  "key": "semester",
+                  "value": "8",
+                  "type": "text"
+                },
+                {
+                  "key": "judul",
+                  "value": "KRS Semester 8 Admin Upload",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId/documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId",
+                "documents"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "26",
+                  "description": "ID Mahasiswa"
+                }
+              ]
+            },
+            "description": "Admin mengunggah dokumen atas nama mahasiswa tertentu."
+          }
+        },
+        {
+          "name": "PUT Update Dokumen Mahasiswa (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/documents/:documentId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "documents",
+                ":documentId"
+              ],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1",
+                  "description": "ID Dokumen Mahasiswa"
+                }
+              ]
+            },
+            "description": "Admin mengupdate file fisik dari dokumen mahasiswa tertentu."
+          }
+        },
+        {
+          "name": "DELETE Dokumen Mahasiswa (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/documents/:documentId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "documents",
+                ":documentId"
+              ],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1",
+                  "description": "ID Dokumen Mahasiswa"
+                }
+              ]
+            },
+            "description": "Admin menghapus dokumen mahasiswa tertentu."
+          }
+        },
+        {
+          "name": "GET Riwayat Bimbingan Mahasiswa (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:userId/bimbingan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":userId",
+                "bimbingan"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "26",
+                  "description": "ID Mahasiswa"
+                }
+              ]
+            },
+            "description": "Admin memantau riwayat bimbingan fisik mahasiswa tertentu."
+          }
+        },
+        {
+          "name": "GET Semua Kode Kelas (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/classes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "classes"
+              ]
+            },
+            "description": "Admin melihat daftar semua Kode Kelas yang tersedia di dalam sistem."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chatbot",
+      "description": "Folder chatbot Aca virtual bimbingan.",
+      "item": [
+        {
+          "name": "GET Sesi Aktif Chatbot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.session_id) {",
+                  "  pm.collectionVariables.set('chatbot_session_id', json.data.session_id);",
+                  "  console.log('Chatbot session ID tersimpan:', json.data.session_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chatbot/session/active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chatbot",
+                "session",
+                "active"
+              ]
+            },
+            "description": "Cek sesi chatbot aktif milik mahasiswa login. Jika tidak ada sesi aktif, response success dengan data: null."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Riwayat Chatbot",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chatbot/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chatbot",
+                "history"
+              ]
+            },
+            "description": "Mengambil daftar riwayat sesi chatbot yang sudah ditutup milik mahasiswa login. Response data selalu array."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Detail Riwayat Chatbot",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var sessionId = pm.collectionVariables.get('chatbot_session_id');",
+                  "if (!sessionId || sessionId === '{{chatbot_session_id}}') {",
+                  "  throw new Error('chatbot_session_id kosong. Jalankan POST Kirim Pesan Chatbot dulu, atau salin session_id dari GET Riwayat Chatbot.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chatbot/history/{{chatbot_session_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chatbot",
+                "history",
+                "{{chatbot_session_id}}"
+              ]
+            },
+            "description": "Mengambil detail riwayat chatbot berdasarkan session_id. Struktur data mirip GET /chatbot/session/active, tetapi is_active false dan memiliki summary."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Kirim Pesan Chatbot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.session_id) {",
+                  "  pm.collectionVariables.set('chatbot_session_id', json.data.session_id);",
+                  "  console.log('Chatbot session ID tersimpan:', json.data.session_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Apakah daftar pustaka wajib pakai Mendeley?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chatbot/message",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chatbot",
+                "message"
+              ]
+            },
+            "description": "Mengirim pesan ke Aca. session_id tidak wajib; backend akan memakai sesi aktif mahasiswa atau membuat sesi baru jika belum ada. Response data.session_id otomatis disimpan ke variable chatbot_session_id."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Generate Draft Summary Chatbot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.status === 'success' && json.data && json.data.draft_summary) {",
+                  "  var safeSummary = json.data.draft_summary",
+                  "    .replace(/\\n/g, '\\\\n')",
+                  "    .replace(/\"/g, '\\\\\"');",
+                  "  pm.collectionVariables.set('chatbot_final_summary', safeSummary);",
+                  "  console.log('Draft summary tersimpan (ter-escape):', safeSummary);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chatbot/session/{{chatbot_session_id}}/generate-summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chatbot",
+                "session",
+                "{{chatbot_session_id}}",
+                "generate-summary"
+              ]
+            },
+            "description": "Meminta draft kesimpulan dari AI berdasarkan seluruh history pada session_id. Response data: draft_summary."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Close Session Chatbot",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var sessionId = pm.collectionVariables.get('chatbot_session_id');",
+                  "if (!sessionId || sessionId === '{{chatbot_session_id}}') {",
+                  "  throw new Error('chatbot_session_id kosong. Jalankan POST Kirim Pesan Chatbot dulu, atau GET Sesi Aktif Chatbot jika sesi masih aktif.');",
+                  "}",
+                  "var finalSummary = pm.collectionVariables.get('chatbot_final_summary');",
+                  "if (!finalSummary || finalSummary === '{{chatbot_final_summary}}') {",
+                  "  throw new Error('chatbot_final_summary kosong. Jalankan POST Generate Draft Summary Chatbot dulu, atau isi variable chatbot_final_summary manual.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"final_summary\": \"{{chatbot_final_summary}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chatbot/session/{{chatbot_session_id}}/close",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chatbot",
+                "session",
+                "{{chatbot_session_id}}",
+                "close"
+              ]
+            },
+            "description": "Menyimpan catatan final dan menutup sesi chatbot. Setelah sukses, sesi tidak lagi muncul di GET /chatbot/session/active."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mahasiswa",
+      "description": "Dashboard umum mahasiswa.",
+      "item": [
+        {
+          "name": "GET Dashboard Mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mahasiswa/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "mahasiswa",
+                "dashboard"
+              ]
+            },
+            "description": "Dashboard mahasiswa.\nRole: mahasiswa only.\n\nResponse fields:\n- nama_mahasiswa, npm_mahasiswa, foto_mahasiswa, dosen_pa, nip_dosen, foto_dosen\n- ipk (float), semester_saat_ini (int)\n- bimbingan_semester_ini (int), bimbingan_keseluruhan (int)\n- chatbot_bulan_ini (int)\n- jadwal_terdekat: [{ id, date (YYYY-MM-DD), start_time (HH:MM), end_time, status, mahasiswa_agenda, keterangan }]\n- kalender_bimbingan: [{ date, status: booked|selesai }]"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://marslabs.my.id/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "chatbot_session_id",
+      "value": ""
+    },
+    {
+      "key": "chatbot_final_summary",
+      "value": ""
+    }
+  ]
+}

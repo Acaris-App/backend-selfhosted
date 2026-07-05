@@ -1,0 +1,11 @@
+{
+  "name": "acaris-docs-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scalar-style API documentation website for Acaris.",
+  "scripts": {
+    "dev": "cd src && bun run dev",
+    "start": "cd src && bun run start",
+    "check": "cd src && bun run check"
+  }
+}

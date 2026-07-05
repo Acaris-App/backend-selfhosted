@@ -1,0 +1,48 @@
+{
+  "dependencies": {
+    "@google-cloud/storage": "^7.19.0",
+    "bcrypt": "^6.0.0",
+    "bull": "^4.16.5",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "ioredis": "^5.10.1",
+    "joi": "^18.1.2",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.4",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0",
+    "rate-limit-redis": "^4.3.1"
+  },
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Acaris is a backend system designed to manage academic consultation processes between students and lecturers.\r This project implements a **cloud-native microservices architecture** integrated with a **CI/CD pipeline** to improve system scalability, reliability, and deployment efficiency.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "artifacts:ci": "powershell -ExecutionPolicy Bypass -File ../../tests/utils/download-ci-artifacts.ps1",
+    "artifacts:jmeter": "powershell -ExecutionPolicy Bypass -File ../../tests/load/download-jmeter-artifacts.ps1",
+    "artifacts:postman": "powershell -ExecutionPolicy Bypass -File ../../tests/postman/download-postman-artifacts.ps1",
+    "check:postman": "node ../../tests/postman/check-postman-collections.js",
+    "check:syntax": "node ../../tests/utils/check-syntax.js",
+    "jmeter:local:smoke": "powershell -ExecutionPolicy Bypass -File ../../tests/load/run-local-jmeter.ps1",
+    "test": "npm run check:syntax && npm run check:postman",
+    "dev": "nodemon src/app.js",
+    "worker": "node src/jobs/email.job.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Acaris-App/Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Acaris-App/Backend/issues"
+  },
+  "homepage": "https://github.com/Acaris-App/Backend#readme"
+}

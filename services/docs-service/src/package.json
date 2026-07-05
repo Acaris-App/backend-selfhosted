@@ -1,0 +1,17 @@
+{
+  "name": "docs",
+  "version": "1.0.50",
+  "scripts": {
+    "dev": "bun run --watch src/docs.ts",
+    "start": "bun run src/docs.ts",
+    "check": "bun x tsc --noEmit"
+  },
+  "dependencies": {
+    "@elysiajs/swagger": "^1.1.6",
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "module": "src/docs.js"
+}

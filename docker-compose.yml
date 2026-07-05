@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+  # 1. Database PostgreSQL Lokal (100% Self-Hosted)
+  acaris-db:
+    image: pgvector/pgvector:pg15
+    environment:
+      - POSTGRES_USER=acaris_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-acaris_db_password}
+      - POSTGRES_DB=acaris_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Inisialisasi otomatis skema & seed data dosen saat database pertama kali dibuat
+      - ./migrations/20260527_create_full_database_schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
+      - ./migrations/20260630_seed_dosen_data.sql:/docker-entrypoint-initdb.d/2_seeds.sql
+      - ./migrations/20260630_seed_fixed_dummy_roles.sql:/docker-entrypoint-initdb.d/3_seeds.sql
+    # Tidak mengekspos port 5432 ke host VPS karena port 5432 di VPS Anda sudah terisi oleh PostgreSQL eksternal.
+    # PostgreSQL kontainer ini hanya dapat diakses dalam jaringan internal docker.
+    restart: always
+
+  # 2. Redis Cache Lokal (100% Self-Hosted)
+  acaris-redis:
+    image: redis:alpine
+    restart: always
+
+  # 3. Auth Service
+  acaris-auth:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - DB_HOST=acaris-db
+      - DB_PORT=5432
+      - DB_USER=acaris_user
+      - DB_PASSWORD=${DB_PASSWORD:-acaris_db_password}
+      - DB_NAME=acaris_db
+      - REDIS_URL=redis://acaris-redis:6379
+      - STORAGE_TYPE=local
+      - APP_URL=https://marslabs.my.id/api/auth
+      - EMAIL_USER=marsneedduitbanget@gmail.com
+      - EMAIL_PASS=${EMAIL_PASS:-your_email_app_password}
+      - CORS_ORIGINS=https://marslabs.my.id,http://marslabs.my.id,https://www.marslabs.my.id
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - acaris-db
+      - acaris-redis
+    restart: always
+
+  # 4. Consultation Service
+  acaris-consultation:
+    build:
+      context: ./services/consultation-service
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - DB_HOST=acaris-db
+      - DB_PORT=5432
+      - DB_USER=acaris_user
+      - DB_PASSWORD=${DB_PASSWORD:-acaris_db_password}
+      - DB_NAME=acaris_db
+      - REDIS_URL=redis://acaris-redis:6379
+      - CORS_ORIGINS=https://marslabs.my.id,http://marslabs.my.id,https://www.marslabs.my.id
+    depends_on:
+      - acaris-db
+      - acaris-redis
+    restart: always
+
+  # 5. Document Service (Menggunakan Local Storage)
+  acaris-document:
+    build:
+      context: ./services/ai-document-service
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - DB_HOST=acaris-db
+      - DB_PORT=5432
+      - DB_USER=acaris_user
+      - DB_PASSWORD=${DB_PASSWORD:-acaris_db_password}
+      - DB_NAME=acaris_db
+      - REDIS_URL=redis://acaris-redis:6379
+      - EMAIL_USER=marsneedduitbanget@gmail.com
+      - EMAIL_PASS=${EMAIL_PASS:-your_email_app_password}
+      - STORAGE_TYPE=local
+      - APP_URL=https://marslabs.my.id/api/document
+      - CORS_ORIGINS=https://marslabs.my.id,http://marslabs.my.id,https://www.marslabs.my.id
+      - N8N_BASE_URL=https://marsy.my.id/n8n
+      - N8N_DOCUMENT_EXTRACT_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/mahasiswa/ekstrak-dokumen
+      - N8N_CHATBOT_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chat-aca
+      - N8N_GENERATE_SUMMARY_WEBHOOK_ID=e2c93a91-e5d7-43eb-a568-d4e13f2e467b
+      - N8N_CLOSE_SESSION_WEBHOOK_ID=fedcc9f9-ea54-4a61-832b-8d5b9c2f69b0
+      - N8N_CHATBOT_SUMMARY_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chatbot/generate-summary
+      - N8N_CHATBOT_CLOSE_SESSION_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chatbot/close
+    volumes:
+      # Mount folder volume luar untuk menyimpan file PDF bimbingan fisik mahasiswa di VPS
+      - ./uploads:/app/uploads
+    extra_hosts:
+      - "marslabs.my.id:172.17.0.1"
+    depends_on:
+      - acaris-db
+      - acaris-redis
+    restart: always
+
+  # 6. API Documentation Service
+  acaris-docs:
+    build:
+      context: ./services/docs-service
+      dockerfile: Dockerfile
+    expose:
+      - "8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - ACARIS_API_BASE_URL=https://marslabs.my.id/api
+    depends_on:
+      - acaris-auth
+    restart: always
+
+  # 7. Gateway Reverse Proxy (Nginx)
+  acaris-gateway:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - acaris-auth
+      - acaris-consultation
+      - acaris-document
+      - acaris-docs
+    restart: always
+
+volumes:
+  pgdata:

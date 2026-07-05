@@ -1,0 +1,49 @@
+steps:
+  # Build image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/consultation-service:$SHORT_SHA', '-f', 'services/consultation-service/Dockerfile', 'services/consultation-service']
+
+  # Push ke Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/consultation-service:$SHORT_SHA']
+
+  # Deploy ke Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'acaris-consultation'
+    - '--image'
+    - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/consultation-service:$SHORT_SHA'
+    - '--region'
+    - 'asia-southeast2'
+    - '--platform'
+    - 'managed'
+    - '--allow-unauthenticated'
+
+    # ENV non-sensitif
+    - '--set-env-vars=NODE_ENV=production'
+    - '--set-env-vars=DB_HOST=34.101.86.214'
+    - '--set-env-vars=DB_PORT=5432'
+    - '--set-env-vars=DB_USER=acaris_user'
+    - '--set-env-vars=DB_NAME=acaris_db'
+    - '--set-env-vars=EMAIL_USER=marsneedduitbanget@gmail.com'
+    - '--set-env-vars=GCS_BUCKET=acaris-storage'
+    - '--set-env-vars=N8N_BASE_URL=http://34.101.47.211:5678'
+    - '--set-env-vars=N8N_DOCUMENT_EXTRACT_WEBHOOK_URL=http://34.101.47.211:5678/webhook/mahasiswa/ekstrak-dokumen'
+    - '--set-env-vars=N8N_CHATBOT_WEBHOOK_URL=http://34.101.47.211:5678/webhook/chat-aca'
+    - '--set-env-vars=N8N_GENERATE_SUMMARY_WEBHOOK_ID=e2c93a91-e5d7-43eb-a568-d4e13f2e467b'
+    - '--set-env-vars=N8N_CLOSE_SESSION_WEBHOOK_ID=fedcc9f9-ea54-4a61-832b-8d5b9c2f69b0'
+
+    # SECRETS — diambil dari Google Secret Manager
+    - '--set-secrets=JWT_SECRET=JWT_SECRET:latest'
+    - '--set-secrets=DB_PASSWORD=DB_PASSWORD:latest'
+    - '--set-secrets=EMAIL_PASS=EMAIL_PASS:latest'
+    - '--set-secrets=REDIS_URL=REDIS_URL:latest'
+
+images:
+  - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/backend/consultation-service:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
