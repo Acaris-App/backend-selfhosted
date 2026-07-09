@@ -1219,7 +1219,7 @@
     {
       "parameters": {
         "content": "## Cleaning dan chunking data",
-        "height": 3264,
+        "height": 3344,
         "width": 2416,
         "color": 3
       },
@@ -1305,14 +1305,14 @@
     {
       "parameters": {
         "content": "## Kurang bagus hasilnya",
-        "height": 1856,
-        "width": 2400,
+        "height": 1936,
+        "width": 2528,
         "color": "#E8E8E8"
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        10112,
-        5936
+        9984,
+        5904
       ],
       "typeVersion": 1,
       "id": "cd83819d-1826-44a5-a788-7c24aa101b34",
@@ -3124,7 +3124,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "31791c2a-120e-421a-868d-725bb15017c0",
+  "versionId": "40bc5c84-ed82-422d-9871-4173efaf66fd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "cad663a652e5c73edb873e77bc5ef0ed988f5e75001e2767c9f670ec0a66b32e"
