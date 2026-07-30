@@ -1598,7 +1598,7 @@
                                          "operation":  "executeQuery",
                                          "query":  "SELECT COALESCE(jsonb_agg(jsonb_build_object(\u0027sender\u0027, sender, \u0027message_text\u0027, message_text, \u0027created_at\u0027, created_at) ORDER BY created_at ASC), \u0027[]\u0027::jsonb) AS messages, COUNT(*)::integer AS message_count FROM chatbot_messages WHERE session_id = $1;",
                                          "options":  {
-                                                         "queryReplacement":  "={{ $(\u0027Ambil History Chat\u0027).item.json.params.session_id }}"
+                                                         "queryReplacement":  "={{ $json.body.session_id }}"
                                                      }
                                      },
                       "type":  "n8n-nodes-base.postgres",
@@ -1658,9 +1658,9 @@
                   {
                       "parameters":  {
                                          "operation":  "executeQuery",
-                                         "query":  "UPDATE chatbot_sessions \nSET \n  final_summary = \u0027{{ $(\u0027Simpan \u0026 Tutup Sesi\u0027).item.json.body.final_summary }}\u0027, \n  status = \u0027selesai\u0027,\n  closed_at = now(),\n  updated_at = now()\nWHERE id = \u0027{{ $(\u0027Simpan \u0026 Tutup Sesi\u0027).item.json.params.session_id }}\u0027;",
+                                         "query":  "UPDATE chatbot_sessions\nSET final_summary = $2,\n    status = \u0027selesai\u0027,\n    closed_at = NOW(),\n    updated_at = NOW()\nWHERE id = $1;",
                                          "options":  {
-
+                                                         "queryReplacement":  "={{ [$json.body.session_id, $json.body.final_summary] }}"
                                                      }
                                      },
                       "type":  "n8n-nodes-base.postgres",
@@ -2225,6 +2225,153 @@
                                    ],
                       "id":  "521e3c36-5854-4fba-a74e-863f46b7e964",
                       "name":  "Basic LLM Chain (kesimpulan)"
+                  },
+                  {
+                      "id":  "b7ce13ac-7a34-454d-a7d8-a1db4586c001",
+                      "name":  "Dokumen adalah KHS?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       13552,
+                                       2720
+                                   ],
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "document-is-khs",
+                                                                                   "leftValue":  "={{ (() =\u003e { try { const text = $(\u0027Analyze document\u0027).first().json.content?.parts?.[0]?.text || \u0027\u0027; const parsed = JSON.parse(String(text).trim().replace(/^```(?:json)?\\s*/i, \u0027\u0027).replace(/\\s*```$/i, \u0027\u0027)); return parsed.jenis_dokumen === \u0027KHS\u0027; } catch (_) { return false; } })() }}",
+                                                                                   "rightValue":  "",
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     }
+                  },
+                  {
+                      "id":  "b7ce13ac-7a34-454d-a7d8-a1db4586c002",
+                      "name":  "Validasi dan Filter JSON KHS",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       13776,
+                                       2640
+                                   ],
+                      "parameters":  {
+                                         "mode":  "runOnceForEachItem",
+                                         "jsCode":  "const rawText = $(\u0027Analyze document\u0027).first().json.content?.parts?.[0]?.text;\n\nif (typeof rawText !== \u0027string\u0027 || !rawText.trim()) {\n  throw new Error(\u0027Analyze document tidak menghasilkan teks JSON.\u0027);\n}\n\nconst cleanedText = rawText.trim()\n  .replace(/^\\`\\`\\`(?:json)?\\s*/i, \u0027\u0027)\n  .replace(/\\s*\\`\\`\\`$/i, \u0027\u0027)\n  .trim();\n\nlet payload;\ntry {\n  payload = JSON.parse(cleanedText);\n} catch (error) {\n  throw new Error(`Output Analyze document bukan JSON valid: ${error.message}`);\n}\n\nif (payload.jenis_dokumen !== \u0027KHS\u0027) {\n  throw new Error(`Jenis dokumen tidak sesuai. Diterima: ${payload.jenis_dokumen ?? \u0027null\u0027}`);\n}\n\nif (!Array.isArray(payload.daftar_nilai) || payload.daftar_nilai.length === 0) {\n  throw new Error(\u0027KHS tidak mempunyai daftar_nilai.\u0027);\n}\n\nconst gradePoints = { A: 4, \u0027B+\u0027: 3.5, B: 3, \u0027C+\u0027: 2.5, C: 2, D: 1, E: 0 };\nconst validItems = [];\nconst skippedUngradedItems = [];\nconst invalidItems = [];\n\nfor (let index = 0; index \u003c payload.daftar_nilai.length; index++) {\n  const item = payload.daftar_nilai[index] || {};\n  const kode = String(item.kode_mk ?? item.kode ?? \u0027\u0027).trim().replace(/\\s+/g, \u0027\u0027).toUpperCase();\n  const nama = String(item.nama_mk ?? item.nama ?? \u0027\u0027).trim().replace(/\\s+/g, \u0027 \u0027);\n  const kredit = Number(item.kredit ?? item.sks);\n  const hurufMutu = String(item.huruf_mutu ?? item.nilai_huruf ?? item.nilai ?? \u0027\u0027).trim().replace(/\\s+/g, \u0027\u0027).toUpperCase();\n\n  if (!hurufMutu) {\n    skippedUngradedItems.push({ nomor_item: index + 1, kode_mk: kode || null, nama_mk: nama || null, alasan: \u0027Belum memiliki huruf mutu\u0027 });\n    continue;\n  }\n\n  const problems = [];\n  if (!kode) problems.push(\u0027kode_mk kosong\u0027);\n  if (!nama) problems.push(\u0027nama_mk kosong\u0027);\n  if (!Number.isFinite(kredit) || kredit \u003c 1 || kredit \u003e 12) problems.push(\u0027kredit tidak valid\u0027);\n  if (!Object.prototype.hasOwnProperty.call(gradePoints, hurufMutu)) problems.push(`huruf_mutu tidak didukung: ${hurufMutu}`);\n  if (problems.length) {\n    invalidItems.push({ nomor_item: index + 1, kode_mk: kode || null, nama_mk: nama || null, masalah: problems });\n    continue;\n  }\n\n  const rawScore = item.nilai_angka ?? item.nilai_numerik ?? null;\n  const score = rawScore === null || rawScore === undefined || rawScore === \u0027\u0027 ? null : Number(String(rawScore).replace(\u0027,\u0027, \u0027.\u0027));\n  validItems.push({\n    kode_mk: kode,\n    nama_mk: nama,\n    kredit,\n    huruf_mutu: hurufMutu,\n    nilai_angka: Number.isFinite(score) \u0026\u0026 score \u003e= 0 \u0026\u0026 score \u003c= 100 ? score : null\n  });\n}\n\nif (invalidItems.length) {\n  throw new Error(`Item KHS tidak valid: ${JSON.stringify(invalidItems)}`);\n}\nif (!validItems.length) {\n  throw new Error(\u0027Tidak ada mata kuliah KHS dengan nilai final yang valid untuk diimpor.\u0027);\n}\n\nconst callbackPayload = {\n  jenis_dokumen: \u0027KHS\u0027,\n  informasi_semester: payload.informasi_semester || {},\n  daftar_nilai: validItems\n};\n\nreturn {\n  json: {\n    academic_payload_text: JSON.stringify(callbackPayload),\n    raw_academic_payload: payload,\n    imported_item_count: validItems.length,\n    skipped_ungraded_count: skippedUngradedItems.length,\n    skipped_ungraded_items: skippedUngradedItems\n  }\n};"
+                                     }
+                  },
+                  {
+                      "id":  "b7ce13ac-7a34-454d-a7d8-a1db4586c003",
+                      "name":  "Callback Import KHS",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.4,
+                      "position":  [
+                                       14016,
+                                       2640
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "lUJYoNqYSbxl7QRX",
+                                                                 "name":  "Acaris n8n callback secret"
+                                                             }
+                                      },
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://marslabs.my.id/api/academic/internal/import-khs",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "sendHeaders":  true,
+                                         "specifyHeaders":  "json",
+                                         "jsonHeaders":  "{\n  \"Content-Type\": \"application/json\"\n}",
+                                         "sendBody":  true,
+                                         "contentType":  "json",
+                                         "bodyParameters":  {
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "name":  "document_id",
+                                                                                       "value":  "={{ Number($(\u0027data mahasiswa\u0027).item.json.body.document_id) }}"
+                                                                                   },
+                                                                                   {
+                                                                                       "name":  "result",
+                                                                                       "value":  "={{ $(\u0027Validasi dan Filter JSON KHS\u0027).item.json.academic_payload_text }}"
+                                                                                   }
+                                                                               ]
+                                                            },
+                                         "options":  {
+                                                         "response":  {
+                                                                          "response":  {
+                                                                                           "fullResponse":  true,
+                                                                                           "neverError":  true,
+                                                                                           "responseFormat":  "json"
+                                                                                       }
+                                                                      }
+                                                     }
+                                     }
+                  },
+                  {
+                      "id":  "b7ce13ac-7a34-454d-a7d8-a1db4586c004",
+                      "name":  "Callback KHS Berhasil?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       14256,
+                                       2640
+                                   ],
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "callback-success",
+                                                                                   "leftValue":  "={{ $json.statusCode \u003e= 200 \u0026\u0026 $json.statusCode \u003c 300 \u0026\u0026 $json.body.status === \u0027success\u0027 }}",
+                                                                                   "rightValue":  "",
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     }
+                  },
+                  {
+                      "id":  "b7ce13ac-7a34-454d-a7d8-a1db4586c005",
+                      "name":  "Callback KHS Gagal",
+                      "type":  "n8n-nodes-base.stopAndError",
+                      "typeVersion":  1,
+                      "position":  [
+                                       14496,
+                                       2720
+                                   ],
+                      "parameters":  {
+                                         "errorMessage":  "={{ \u0027Callback KHS gagal. HTTP \u0027 + ($json.statusCode ?? \u0027tidak diketahui\u0027) + \u0027: \u0027 + ($json.body?.message ?? JSON.stringify($json.body)) }}"
+                                     }
                   }
               ],
     "connections":  {
@@ -3134,7 +3281,68 @@
                                                                                    }
                                                                                ]
                                                                            ]
-                                                      }
+                                                      },
+                        "Update rows in a table":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "Dokumen adalah KHS?",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "Dokumen adalah KHS?":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Validasi dan Filter JSON KHS",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ],
+                                                                 [
+
+                                                                 ]
+                                                             ]
+                                                },
+                        "Validasi dan Filter JSON KHS":  {
+                                                             "main":  [
+                                                                          [
+                                                                              {
+                                                                                  "node":  "Callback Import KHS",
+                                                                                  "type":  "main",
+                                                                                  "index":  0
+                                                                              }
+                                                                          ]
+                                                                      ]
+                                                         },
+                        "Callback Import KHS":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Callback KHS Berhasil?",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Callback KHS Berhasil?":  {
+                                                       "main":  [
+                                                                    [
+
+                                                                    ],
+                                                                    [
+                                                                        {
+                                                                            "node":  "Callback KHS Gagal",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   }
                     },
     "settings":  {
                      "executionOrder":  "v1"

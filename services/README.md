@@ -14,6 +14,15 @@ Copy `.env.example` to `.env` and set strong values for `DB_PASSWORD`, `JWT_SECR
 
 Review the n8n webhook URLs and public domains in `docker-compose.yml` before deployment. They are deployment-specific values, not generated automatically.
 
+When n8n runs as a separate Docker container, attach it to the Backend Compose network so its PostgreSQL credential can resolve `acaris-db` for the PGVector retrieval tool:
+
+```powershell
+docker network connect backend-selfhosted_default n8n
+```
+
+The command is idempotent for an existing container. Run it again after recreating
+the n8n container, then verify with `docker network inspect backend-selfhosted_default`.
+
 ## First Deployment
 
 1. Build and start the stack with `docker compose up -d --build`.
