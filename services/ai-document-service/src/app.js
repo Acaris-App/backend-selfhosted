@@ -54,11 +54,14 @@ app.get('/health', (req, res) => {
 const documentRoutes = require('./routes/document.routes');
 const chatbotRoutes = require('./routes/chatbot.routes');
 const adminRoutes = require('./routes/admin.routes');
+const academicRoutes = require('./routes/academic.routes');
 
 app.use('/document', documentRoutes);
 app.use('/chatbot', chatbotRoutes);
 app.use('/api/chat-bot', chatbotRoutes);
 app.use('/admin', adminRoutes);
+app.use('/academic', academicRoutes);
+app.use('/', academicRoutes);
 
 // Menyajikan folder uploads di VPS secara lokal jika STORAGE_TYPE=local
 app.use('/uploads', express.static(require('path').resolve('/app/uploads')));

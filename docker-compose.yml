@@ -14,6 +14,12 @@ services:
       - ./migrations/20260527_create_full_database_schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
       - ./migrations/20260630_seed_dosen_data.sql:/docker-entrypoint-initdb.d/2_seeds.sql
       - ./migrations/20260630_seed_fixed_dummy_roles.sql:/docker-entrypoint-initdb.d/3_seeds.sql
+      - ./migrations/20260729_create_academic_schema.sql:/docker-entrypoint-initdb.d/4_academic_schema.sql
+      - ./migrations/20260729_add_student_curriculum_assignment.sql:/docker-entrypoint-initdb.d/5_student_curriculum.sql
+      - ./migrations/20260729_fix_academic_imports_and_summary.sql:/docker-entrypoint-initdb.d/6_academic_imports.sql
+      - ./migrations/20260729_support_plus_minus_grades.sql:/docker-entrypoint-initdb.d/7_plus_minus_grades.sql
+      - ./migrations/20260729_limit_plus_grades_only.sql:/docker-entrypoint-initdb.d/8_plus_grades.sql
+      - ./migrations/20260729_preserve_document_delete_compatibility.sql:/docker-entrypoint-initdb.d/9_document_delete_compatibility.sql
     # Tidak mengekspos port 5432 ke host VPS karena port 5432 di VPS Anda sudah terisi oleh PostgreSQL eksternal.
     # PostgreSQL kontainer ini hanya dapat diakses dalam jaringan internal docker.
     restart: always
@@ -107,6 +113,7 @@ services:
       - N8N_CLOSE_SESSION_WEBHOOK_ID=fedcc9f9-ea54-4a61-832b-8d5b9c2f69b0
       - N8N_CHATBOT_SUMMARY_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chatbot/generate-summary
       - N8N_CHATBOT_CLOSE_SESSION_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chatbot/close
+      - N8N_ACADEMIC_CALLBACK_SECRET=${N8N_ACADEMIC_CALLBACK_SECRET}
     volumes:
       # Mount folder volume luar untuk menyimpan file PDF bimbingan fisik mahasiswa di VPS
       - ./uploads:/app/uploads

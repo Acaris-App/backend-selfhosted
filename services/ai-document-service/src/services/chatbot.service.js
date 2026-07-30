@@ -3,6 +3,17 @@ const chatbotRepository = require('../repositories/chatbot.repository');
 
 const CHATBOT_TIMEOUT_MS = parseInt(process.env.N8N_CHATBOT_TIMEOUT_MS, 10) || 60000;
 
+const getN8nHeaders = () => {
+  if (!process.env.N8N_ACADEMIC_CALLBACK_SECRET) {
+    throw new Error("N8N_ACADEMIC_CALLBACK_SECRET is not configured.");
+  }
+
+  return {
+    'Content-Type': 'application/json',
+    'x-academic-callback-secret': process.env.N8N_ACADEMIC_CALLBACK_SECRET
+  };
+};
+
 const joinWebhookUrl = (baseUrl, webhookId, path) => {
   const normalizedBaseUrl = String(baseUrl || '').replace(/\/+$/, '');
   const normalizedWebhookId = String(webhookId || '').replace(/^\/+|\/+$/g, '');
@@ -143,9 +154,7 @@ const requestWebhook = async (url, payload) => {
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getN8nHeaders(),
       body: JSON.stringify(payload),
       signal: controller.signal
     });

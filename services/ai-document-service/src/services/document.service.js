@@ -5,6 +5,17 @@ const { bucket } = require('../config/gcs');
 
 const DOCUMENT_EXTRACT_TIMEOUT_MS = parseInt(process.env.N8N_DOCUMENT_EXTRACT_TIMEOUT_MS, 10) || 30000;
 
+const getN8nHeaders = () => {
+  if (!process.env.N8N_ACADEMIC_CALLBACK_SECRET) {
+    throw new Error("N8N_ACADEMIC_CALLBACK_SECRET is not configured.");
+  }
+
+  return {
+    'Content-Type': 'application/json',
+    'x-academic-callback-secret': process.env.N8N_ACADEMIC_CALLBACK_SECRET
+  };
+};
+
 const getDocumentExtractWebhookUrl = () => {
   if (!process.env.N8N_DOCUMENT_EXTRACT_WEBHOOK_URL) throw new Error("N8N_DOCUMENT_EXTRACT_WEBHOOK_URL is not configured.");
   return process.env.N8N_DOCUMENT_EXTRACT_WEBHOOK_URL;
@@ -46,9 +57,7 @@ const notifyDocumentExtractionWebhook = async ({ document, user, source }) => {
   try {
     const response = await fetch(getDocumentExtractWebhookUrl(), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getN8nHeaders(),
       body: JSON.stringify(payload),
       signal: controller.signal
     });
@@ -96,9 +105,7 @@ const notifyDocumentDeletionWebhook = async ({ document, user, source }) => {
   try {
     const response = await fetch(getDocumentExtractWebhookUrl(), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getN8nHeaders(),
       body: JSON.stringify(payload),
       signal: controller.signal
     });
