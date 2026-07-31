@@ -81,17 +81,15 @@ const electiveNames = [
 ];
 
 const concentrations = {
-  RPL: ['INF625313', 'INF625318', 'INF625319', 'INF625328', 'INF625329', 'INF625332', 'INF625334', 'INF625335'],
-  DAI: ['INF625314', 'INF625320', 'INF625323', 'INF625324', 'INF625325', 'INF625330', 'INF625331'],
-  JKK: ['INF625315', 'INF625321', 'INF625322', 'INF625333', 'INF625336', 'INF625337'],
-  SIT: ['INF625316', 'INF625317', 'INF625326', 'INF625327', 'INF625338']
+  SK: [],
+  RPL: [],
+  TI: []
 };
 
 const concentrationNames = {
-  RPL: 'Rekayasa Perangkat Lunak dan Platform',
-  DAI: 'Data, AI, dan Komputasi Visual/Geospasial',
-  JKK: 'Jaringan, Cloud, Keamanan, dan Sistem Terhubung',
-  SIT: 'Sistem Informasi, Enterprise, dan Tata Kelola'
+  SK: 'Sistem Komputer',
+  RPL: 'Rekayasa Perangkat Lunak',
+  TI: 'Teknologi Informasi'
 };
 
 const run = async () => {
@@ -134,9 +132,9 @@ const run = async () => {
     }
     for (const [code, name] of Object.entries(concentrationNames)) {
       const concentration = await client.query(
-        `INSERT INTO konsentrasi (kode, nama) VALUES ($1, $2)
-         ON CONFLICT (kode) DO UPDATE SET nama = EXCLUDED.nama, status = 'aktif', updated_at = NOW()
-         RETURNING id`, [code, name]
+        `INSERT INTO konsentrasi (kurikulum_id, kode, nama) VALUES ($1, $2, $3)
+          ON CONFLICT (kurikulum_id, kode) DO UPDATE SET nama = EXCLUDED.nama, status = 'aktif', updated_at = NOW()
+          RETURNING id`, [curriculumId, code, name]
       );
       for (const courseCode of concentrations[code]) {
         await client.query(
@@ -149,7 +147,7 @@ const run = async () => {
       }
     }
     await client.query('COMMIT');
-    console.log(`Seeded curriculum ${curriculumId}: ${required.length + electiveNames.length} courses, 4 analytical concentrations.`);
+     console.log(`Seeded curriculum ${curriculumId}: ${required.length + electiveNames.length} courses, 3 concentrations.`);
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

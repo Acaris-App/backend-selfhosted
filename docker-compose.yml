@@ -20,6 +20,7 @@ services:
       - ./migrations/20260729_support_plus_minus_grades.sql:/docker-entrypoint-initdb.d/7_plus_minus_grades.sql
       - ./migrations/20260729_limit_plus_grades_only.sql:/docker-entrypoint-initdb.d/8_plus_grades.sql
       - ./migrations/20260729_preserve_document_delete_compatibility.sql:/docker-entrypoint-initdb.d/9_document_delete_compatibility.sql
+      - ./migrations/20260731_harden_curriculum_sources.sql:/docker-entrypoint-initdb.d/10_curriculum_sources.sql
     # Tidak mengekspos port 5432 ke host VPS karena port 5432 di VPS Anda sudah terisi oleh PostgreSQL eksternal.
     # PostgreSQL kontainer ini hanya dapat diakses dalam jaringan internal docker.
     restart: always

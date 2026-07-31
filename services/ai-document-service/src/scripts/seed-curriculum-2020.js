@@ -107,6 +107,13 @@ const concentrationCourses = {
   SIT: ['INF620314', 'INF620316', 'INF620324', 'INF620337', 'INF620346', 'INF620347']
 };
 
+const concentrationNames = {
+  RPL: 'Rekayasa Perangkat Lunak',
+  DAI: 'Sistem Cerdas',
+  JKK: 'Teknik Komputer',
+  SIT: 'Teknologi Informasi'
+};
+
 const run = async () => {
   const client = await db.connect();
   try {
@@ -143,10 +150,13 @@ const run = async () => {
 
     for (const [concentrationCode, courseCodes] of Object.entries(concentrationCourses)) {
       const concentration = await client.query(
-        `SELECT id FROM konsentrasi WHERE kode = $1`,
-        [concentrationCode]
+        `INSERT INTO konsentrasi (kurikulum_id, kode, nama, status)
+         VALUES ($1, $2, $3, 'aktif')
+         ON CONFLICT (kurikulum_id, kode) DO UPDATE
+           SET nama = EXCLUDED.nama, status = 'aktif', updated_at = NOW()
+         RETURNING id`,
+        [curriculumId, concentrationCode, concentrationNames[concentrationCode]]
       );
-      if (!concentration.rows[0]) throw new Error(`Konsentrasi ${concentrationCode} belum tersedia`);
       for (const courseCode of courseCodes) {
         await client.query(
           `INSERT INTO konsentrasi_mata_kuliah (konsentrasi_id, kurikulum_mata_kuliah_id)

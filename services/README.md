@@ -33,6 +33,7 @@ the n8n container, then verify with `docker network inspect backend-selfhosted_d
 ```powershell
 docker compose exec acaris-document npm run seed:curriculum
 docker compose exec acaris-document npm run seed:curriculum-2020
+Get-Content migrations/20260731_harden_curriculum_sources.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
 ```
 
 The second command assigns TI-2020 or TI-2025 by student cohort. Run it after adding or changing student cohort data.
@@ -48,9 +49,19 @@ Get-Content migrations/20260729_fix_academic_imports_and_summary.sql | docker co
 Get-Content migrations/20260729_support_plus_minus_grades.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
 Get-Content migrations/20260729_limit_plus_grades_only.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
 Get-Content migrations/20260729_preserve_document_delete_compatibility.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
+Get-Content migrations/20260731_harden_curriculum_sources.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
 ```
 
 Then run the two seed commands in the first-deployment section. To import existing extracted KHS content after assignments are present, run `docker compose exec acaris-document npm run backfill:academic` and address every reported failure before treating the import as complete.
+
+## Curriculum Source Policy
+
+The curriculum catalog source of truth is PostgreSQL: `kurikulum`,
+`kurikulum_mata_kuliah`, and `mata_kuliah`. TI-2020 uses Rekayasa Perangkat
+Lunak, Teknik Komputer, Teknologi Informasi, and Sistem Cerdas. TI-2025 uses
+Sistem Komputer, Rekayasa Perangkat Lunak, and Teknologi Informasi. TI-2025
+course-to-concentration mappings remain empty until an official mapping is
+available; inferred mappings must not be used as academic policy.
 
 ## Routing And API
 

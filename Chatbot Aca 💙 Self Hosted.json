@@ -1473,7 +1473,7 @@
                   {
                       "parameters":  {
                                          "respondWith":  "json",
-                                         "responseBody":  "={\n  \"balasan_aca\": {{ JSON.stringify($json.output || \"Aca gagal merespon\") }},\n  \"contexts\": {{ JSON.stringify($json.intermediateSteps ? $json.intermediateSteps.map(step =\u003e step.observation) : []) }}\n}",
+                                         "responseBody":  "={{ JSON.stringify({ balasan_aca: $json.output || 'Aca gagal merespon', explanation: { question: $('chatbot').first().json.body?.pesan_user || '', classification: ($json.intermediateSteps || []).some(step => /Postgres/i.test(String(step?.action?.tool || step?.tool || ''))) ? 'personal' : (($json.intermediateSteps || []).some(step => /vector|knowledge|dokumen/i.test(String(step?.action?.tool || step?.tool || ''))) ? 'general' : 'out_of_scope_or_no_retrieval'), nodes: [{ id: 'question', type: 'question', label: $('chatbot').first().json.body?.pesan_user || 'Pertanyaan pengguna' }, { id: 'answer', type: 'answer', label: 'Balasan Aca' }], edges: [] } }) }}",
                                          "options":  {
 
                                                      }

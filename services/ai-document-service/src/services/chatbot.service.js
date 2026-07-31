@@ -314,6 +314,7 @@ exports.sendMessage = async ({ user, body }) => {
   return {
     session_id: session.id,
     reply_text: replyText,
+    ...(normalizedResponse.explanation ? { explanation: normalizedResponse.explanation } : {}),
     created_at: botMessage.created_at
   };
 };
@@ -325,6 +326,7 @@ exports.sendLegacyMessage = async ({ user, body }) => {
     session_id: result.session_id,
     balasan_aca: result.reply_text,
     reply_text: result.reply_text,
+    ...(result.explanation ? { explanation: result.explanation } : {}),
     created_at: result.created_at
   };
 };
