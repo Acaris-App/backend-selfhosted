@@ -20,6 +20,10 @@ assert(seed2020.includes("RPL: 'Rekayasa Perangkat Lunak'") &&
   'TI-2020 seed must use the four official concentration names.');
 assert((seed2025.match(/\n  (?:SK|RPL|TI): \[/g) || []).length === 3,
   'TI-2025 seed must define exactly three concentration groups.');
+assert(seed2025.includes("SK: ['INF625306'") &&
+  seed2025.includes("RPL: ['INF625313'") &&
+  seed2025.includes("TI: ['INF625315'"),
+  'TI-2025 seed must map courses to all three concentrations.');
 assert(migration.includes("'proposed'") && migration.includes("'verified'"),
   'Migration must retain prerequisite verification states.');
 

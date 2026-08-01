@@ -81,9 +81,9 @@ const electiveNames = [
 ];
 
 const concentrations = {
-  SK: [],
-  RPL: [],
-  TI: []
+  SK: ['INF625306', 'INF625307', 'INF625320', 'INF625329', 'INF625334', 'INF625337'],
+  RPL: ['INF625313', 'INF625314', 'INF625318', 'INF625319', 'INF625323', 'INF625324', 'INF625325', 'INF625328', 'INF625330', 'INF625332', 'INF625335'],
+  TI: ['INF625315', 'INF625316', 'INF625317', 'INF625321', 'INF625322', 'INF625326', 'INF625327', 'INF625331', 'INF625333', 'INF625336', 'INF625338']
 };
 
 const concentrationNames = {
@@ -135,6 +135,10 @@ const run = async () => {
         `INSERT INTO konsentrasi (kurikulum_id, kode, nama) VALUES ($1, $2, $3)
           ON CONFLICT (kurikulum_id, kode) DO UPDATE SET nama = EXCLUDED.nama, status = 'aktif', updated_at = NOW()
           RETURNING id`, [curriculumId, code, name]
+      );
+      await client.query(
+        `DELETE FROM konsentrasi_mata_kuliah WHERE konsentrasi_id = $1::BIGINT`,
+        [concentration.rows[0].id]
       );
       for (const courseCode of concentrations[code]) {
         await client.query(

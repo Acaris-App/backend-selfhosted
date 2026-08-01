@@ -34,6 +34,7 @@ the n8n container, then verify with `docker network inspect backend-selfhosted_d
 docker compose exec acaris-document npm run seed:curriculum
 docker compose exec acaris-document npm run seed:curriculum-2020
 Get-Content migrations/20260731_harden_curriculum_sources.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
+Get-Content migrations/20260801_map_ti_2025_concentrations.sql | docker compose exec -T acaris-db psql -U acaris_user -d acaris_db
 ```
 
 The second command assigns TI-2020 or TI-2025 by student cohort. Run it after adding or changing student cohort data.
@@ -59,9 +60,11 @@ Then run the two seed commands in the first-deployment section. To import existi
 The curriculum catalog source of truth is PostgreSQL: `kurikulum`,
 `kurikulum_mata_kuliah`, and `mata_kuliah`. TI-2020 uses Rekayasa Perangkat
 Lunak, Teknik Komputer, Teknologi Informasi, and Sistem Cerdas. TI-2025 uses
-Sistem Komputer, Rekayasa Perangkat Lunak, and Teknologi Informasi. TI-2025
-course-to-concentration mappings remain empty until an official mapping is
-available; inferred mappings must not be used as academic policy.
+Sistem Komputer, Rekayasa Perangkat Lunak, and Teknologi Informasi. The TI-2025
+operational course mapping is defined in
+`20260801_map_ti_2025_concentrations.sql` and the curriculum seed. It is derived
+from the curriculum field descriptions and course scope, not from the conflicting
+BK mapping tables; it must not be used as a prerequisite rule.
 
 ## Routing And API
 
