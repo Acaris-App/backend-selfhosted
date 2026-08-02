@@ -112,6 +112,13 @@ const getSummaryText = (payload) => getTextFromKeys(payload, [
 ]);
 
 const normalizeResponse = (payload) => {
+  if (Array.isArray(payload)) {
+    const firstResponse = payload[0];
+    if (firstResponse && typeof firstResponse === 'object') {
+      return normalizeResponse(firstResponse);
+    }
+  }
+
   if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
     if (Object.prototype.hasOwnProperty.call(payload, 'balasan_aca')) {
       return payload;
