@@ -6,11 +6,20 @@ const mahasiswaSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
   role: Joi.string().valid('mahasiswa').required(),
-  npm_nip: Joi.string().required(),
-  angkatan: Joi.number().required(),
+  npm_nip: Joi.string().pattern(/^\d{10,}$/).required().messages({
+    'string.pattern.base': 'NPM mahasiswa harus berupa angka dan diawali tahun masuk'
+  }),
   kode_kelas: Joi.string().required(),
   ipk: Joi.number().min(0).max(4).required(),
-  current_semester: Joi.number().min(1).required(),
+  current_semester: Joi.number().integer().min(1).required(),
+  konsentrasi: Joi.string().trim().valid(
+    'Rekayasa Perangkat Lunak', 'Sistem Cerdas', 'Teknik Komputer',
+    'Teknologi Informasi', 'Sistem Komputer'
+  ).when('current_semester', {
+    is: Joi.number().min(5),
+    then: Joi.required(),
+    otherwise: Joi.optional().allow('', null)
+  }),
   profile_picture: Joi.string().allow('', null).optional()
 });
 

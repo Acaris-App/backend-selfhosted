@@ -108,12 +108,7 @@
                 },
                 {
                   "key": "npm_nip",
-                  "value": "DUMMYMAHASISWA",
-                  "type": "text"
-                },
-                {
-                  "key": "angkatan",
-                  "value": "2021",
+                  "value": "2255069999",
                   "type": "text"
                 },
                 {
@@ -130,6 +125,12 @@
                   "key": "current_semester",
                   "value": "8",
                   "type": "text"
+                },
+                {
+                  "key": "konsentrasi",
+                  "value": "Rekayasa Perangkat Lunak",
+                  "type": "text",
+                  "description": "Wajib untuk semester 5 ke atas. Kurikulum ditentukan otomatis dari dua digit pertama NPM."
                 },
                 {
                   "key": "profile_picture",

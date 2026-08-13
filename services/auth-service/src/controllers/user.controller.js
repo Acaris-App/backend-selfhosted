@@ -73,9 +73,9 @@ const buildProfileResponse = async (userId, role) => {
     const profile = await profileRepository.getMahasiswaProfile(userId);
 
     if (profile) {
-      responseData.angkatan         = profile.angkatan;
       responseData.ipk              = profile.ipk;
       responseData.current_semester = profile.current_semester;
+      responseData.konsentrasi      = profile.konsentrasi || null;
       responseData.dosen_pa_id      = profile.dosen_pa_id;
       responseData.nama_dosen_pa    = profile.nama_dosen_pa  || null;
       responseData.nip_dosen_pa     = profile.nip_dosen_pa   || null;
@@ -135,10 +135,10 @@ exports.getMe = async (req, res, next) => {
 exports.updateProfileText = async (req, res, next) => {
   try {
     const { id, role } = req.user;
-    const { name, npm_nip, angkatan, ipk, current_semester } = req.body;
+    const { name, npm_nip, ipk, current_semester, konsentrasi } = req.body;
 
     const hasUserField      = name !== undefined || npm_nip !== undefined;
-    const hasMahasiswaField = angkatan !== undefined || ipk !== undefined || current_semester !== undefined;
+    const hasMahasiswaField = ipk !== undefined || current_semester !== undefined || konsentrasi !== undefined;
 
     if (!hasUserField && !hasMahasiswaField) {
       return res.status(400).json({ status: "error", message: "Tidak ada data yang dikirim" });
@@ -174,24 +174,27 @@ exports.updateProfileText = async (req, res, next) => {
         }
       }
 
+      const currentProfile = await profileRepository.getMahasiswaProfile(id);
+      const semester = current_semester !== undefined ? parseInt(current_semester) : parseInt(currentProfile?.current_semester);
       if (current_semester !== undefined) {
-        const semNum = parseInt(current_semester);
-        if (isNaN(semNum) || semNum < 1) {
+        if (isNaN(semester) || semester < 1) {
           return res.status(400).json({ status: "error", message: "Semester minimal 1" });
         }
       }
 
-      if (angkatan !== undefined) {
-        const angkatanNum = parseInt(angkatan);
-        if (isNaN(angkatanNum) || angkatanNum < 2000) {
-          return res.status(400).json({ status: "error", message: "Angkatan tidak valid" });
+      let concentration;
+      if (semester >= 5) {
+        concentration = typeof konsentrasi === 'string' ? konsentrasi.trim() : currentProfile?.konsentrasi;
+        if (!concentration) return res.status(400).json({ status: "error", message: "Konsentrasi wajib diisi untuk semester 5 ke atas" });
+        if (!await profileRepository.hasConcentrationForStudent(id, concentration)) {
+          return res.status(400).json({ status: "error", message: "Konsentrasi tidak sesuai dengan kurikulum mahasiswa" });
         }
-      }
+      } else if (konsentrasi !== undefined) concentration = null;
 
       await profileRepository.updateMahasiswaProfile(id, {
-        angkatan:         angkatan         !== undefined ? parseInt(angkatan)         : undefined,
         ipk:              ipk              !== undefined ? parseFloat(ipk)            : undefined,
-        current_semester: current_semester !== undefined ? parseInt(current_semester) : undefined
+        current_semester: current_semester !== undefined ? semester : undefined,
+        konsentrasi: concentration
       });
     }
 

@@ -17,6 +17,11 @@ const { checkLoginLimit } = require('./rateLimit.service');
 
 const normalizeOTPCode = (code) => String(code || '').replace(/\D/g, '');
 
+const getAdmissionYearFromNpm = (npm) => {
+  const match = String(npm || '').match(/^(\d{2})/);
+  return match ? 2000 + Number(match[1]) : null;
+};
+
 // ================= HELPER GCS PROFILE PICTURE =================
 const uploadProfilePicture = async (file, nip) => {
   const ext = file.mimetype.split('/')[1];
@@ -61,9 +66,9 @@ const buildProfileData = async (user) => {
     const mahasiswa = await profileRepository.getMahasiswaProfile(user.id);
     if (mahasiswa) {
       profileData = {
-        angkatan:         mahasiswa.angkatan,
         ipk:              mahasiswa.ipk,
         current_semester: mahasiswa.current_semester,
+        konsentrasi:      mahasiswa.konsentrasi || null,
         dosen_pa_id:      mahasiswa.dosen_pa_id,
         nama_dosen_pa:    mahasiswa.nama_dosen_pa  || null,
         nip_dosen_pa:     mahasiswa.nip_dosen_pa   || null,
@@ -171,18 +176,27 @@ exports.registerMahasiswa = async (payload, file) => {
       email,
       password,
       npm_nip,
-      angkatan,
-      kode_kelas,
-      ipk,
-      current_semester
+       kode_kelas,
+       ipk,
+       current_semester,
+       konsentrasi
     } = payload;
 
-    if (!ipk || ipk < 0 || ipk > 4) {
+    if (ipk === undefined || ipk === null || ipk === '' || ipk < 0 || ipk > 4) {
       throw { status: 400, message: "IPK tidak valid" };
     }
 
     if (!current_semester || current_semester < 1) {
       throw { status: 400, message: "Semester tidak valid" };
+    }
+
+    const admissionYear = getAdmissionYearFromNpm(npm_nip);
+    if (!admissionYear) throw { status: 400, message: 'Tahun masuk tidak dapat dibaca dari NPM' };
+    const curriculumYear = admissionYear >= 2025 ? 2025 : 2020;
+    const curriculum = await profileRepository.findActiveCurriculumByYearTx(client, curriculumYear);
+    if (!curriculum) throw { status: 400, message: 'Kurikulum yang ditentukan dari NPM belum tersedia' };
+    if (Number(current_semester) >= 5 && !await profileRepository.hasConcentrationForCurriculumTx(client, curriculum.id, konsentrasi)) {
+      throw { status: 400, message: 'Konsentrasi tidak sesuai dengan kurikulum mahasiswa' };
     }
 
     const existingEmail = await client.query(
@@ -258,11 +272,13 @@ exports.registerMahasiswa = async (payload, file) => {
 
     await profileRepository.createMahasiswaTx(client, {
       user_id: user.id,
-      angkatan,
+      angkatan: admissionYear,
       ipk,
       current_semester,
+      konsentrasi: Number(current_semester) >= 5 ? konsentrasi : null,
       dosen_pa_id: dosen.user_id
     });
+    await profileRepository.assignMahasiswaKurikulumTx(client, user.id, curriculum.id);
 
     const code = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);

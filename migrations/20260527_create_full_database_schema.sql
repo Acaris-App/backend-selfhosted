@@ -39,11 +39,18 @@ CREATE TABLE IF NOT EXISTS mahasiswa (
   angkatan INTEGER,
   ipk NUMERIC(3, 2),
   current_semester INTEGER,
+  konsentrasi VARCHAR(100),
   dosen_pa_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT mahasiswa_ipk_check CHECK (ipk IS NULL OR (ipk >= 0 AND ipk <= 4)),
-  CONSTRAINT mahasiswa_semester_check CHECK (current_semester IS NULL OR current_semester >= 1)
+  CONSTRAINT mahasiswa_semester_check CHECK (current_semester IS NULL OR current_semester >= 1),
+  CONSTRAINT mahasiswa_konsentrasi_check CHECK (
+    konsentrasi IS NULL OR konsentrasi IN (
+      'Rekayasa Perangkat Lunak', 'Sistem Cerdas', 'Teknik Komputer',
+      'Teknologi Informasi', 'Sistem Komputer'
+    )
+  )
 );
 
 CREATE INDEX IF NOT EXISTS idx_mahasiswa_dosen_pa_id
