@@ -123,9 +123,17 @@ exports.hasConcentrationForCurriculumTx = async (client, curriculumId, name) => 
 
 exports.hasConcentrationForStudent = async (userId, name) => {
   const result = await db.query(
-    `SELECT 1 FROM mahasiswa_kurikulum mk
-     JOIN konsentrasi c ON c.kurikulum_id = mk.kurikulum_id AND c.status = 'aktif'
-     WHERE mk.mahasiswa_user_id = $1 AND c.nama = $2 LIMIT 1`,
+    `SELECT 1
+     FROM mahasiswa m
+     JOIN users u ON u.id = m.user_id
+     JOIN kurikulum k ON k.status = 'aktif' AND k.tahun_mulai = CASE
+       WHEN COALESCE(m.angkatan, 2000 + NULLIF(SUBSTRING(u.npm_nip FROM '^([0-9]{2})'), '')::INTEGER) >= 2025
+         THEN 2025
+       ELSE 2020
+     END
+     JOIN konsentrasi c ON c.kurikulum_id = k.id AND c.status = 'aktif'
+     WHERE m.user_id = $1 AND c.nama = $2
+     LIMIT 1`,
     [userId, name]
   );
   return Boolean(result.rows[0]);
