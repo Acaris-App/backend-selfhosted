@@ -1,5 +1,5 @@
 # ✅ Alpine: ~200MB vs node:18 full ~1GB — build & deploy lebih cepat
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
