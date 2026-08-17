@@ -285,7 +285,7 @@ const formatUser = (r) => ({
   identifier:          r.npm_nip,
   status:              r.is_verified ? 'active' : 'inactive',
   profile_picture_url: r.profile_picture || null,
-  angkatan:            r.angkatan || null,
+  konsentrasi:         r.konsentrasi || null,
   current_semester:    r.current_semester || null,
   ipk:                 r.ipk !== undefined ? r.ipk : null,
   dosen_pa:            r.dosen_pa_name || null,
@@ -334,14 +334,14 @@ exports.getAllUsers = async ({ user, query }) => {
     throw { status: 403, message: "Hanya admin yang dapat mengakses endpoint ini" };
   }
 
-  const { role, search, sort_by, page = 1, limit = 20, angkatan, ipk, kode_kelas } = query;
+  const { role, search, sort_by, page = 1, limit = 20, konsentrasi, ipk, kode_kelas } = query;
 
   const validRoles = ['mahasiswa', 'dosen', 'admin'];
   if (!role) throw { status: 400, message: "role wajib diisi (mahasiswa, dosen, admin)" };
   if (!validRoles.includes(role)) throw { status: 400, message: "role tidak valid" };
 
   const validSorts = ['name_asc', 'name_desc', 'identifier_asc', 'identifier_desc',
-    'angkatan_asc', 'angkatan_desc', 'semester_asc', 'semester_desc'];
+    'konsentrasi_asc', 'konsentrasi_desc', 'semester_asc', 'semester_desc'];
   if (sort_by && !validSorts.includes(sort_by)) {
     throw { status: 400, message: `sort_by tidak valid. Pilihan: ${validSorts.join(', ')}` };
   }
@@ -350,7 +350,7 @@ exports.getAllUsers = async ({ user, query }) => {
   const limitInt = Math.min(100, Math.max(1, parseInt(limit) || 20));
 
   const { rows, totalItems } = await adminRepository.getAllUsers({
-    role, search, sort_by, page: pageInt, limit: limitInt, angkatan, ipk, kode_kelas
+    role, search, sort_by, page: pageInt, limit: limitInt, konsentrasi, ipk, kode_kelas
   });
 
   const totalPages = Math.ceil(totalItems / limitInt);
@@ -432,7 +432,7 @@ exports.updateUser = async ({ user, userId, body, file }) => {
     throw { status: 400, message: "Request body tidak terbaca. Pastikan Content-Type multipart/form-data dikirim dengan benar." };
   }
 
-  const { name, email, identifier, angkatan, current_semester, dosen_pa, kode_kelas, ipk } = body;
+  const { name, email, identifier, konsentrasi, current_semester, dosen_pa, kode_kelas, ipk } = body;
 
   if (!name || !email || !identifier) {
     throw { status: 400, message: "name, email, dan identifier wajib diisi" };
@@ -474,10 +474,17 @@ exports.updateUser = async ({ user, userId, body, file }) => {
   // Update data mahasiswa
   if (target.role === 'mahasiswa') {
     const mahasiswaUpdate = {
-      angkatan:         angkatan         ? parseInt(angkatan)         : undefined,
       current_semester: current_semester ? parseInt(current_semester) : undefined,
       ipk:              ipk !== undefined && ipk !== '' ? parseFloat(ipk) : undefined,
     };
+
+    // Validasi & set konsentrasi terhadap kurikulum mahasiswa
+    if (konsentrasi !== undefined && konsentrasi !== '') {
+      const trimmedKonsentrasi = String(konsentrasi).trim();
+      const valid = await adminRepository.hasConcentrationForStudent(userId, trimmedKonsentrasi);
+      if (!valid) throw { status: 400, message: 'Konsentrasi tidak sesuai dengan kurikulum mahasiswa' };
+      mahasiswaUpdate.konsentrasi = trimmedKonsentrasi;
+    }
 
     // Resolve kode_kelas → dosen_pa_id
     if (kode_kelas !== undefined && kode_kelas !== '') {

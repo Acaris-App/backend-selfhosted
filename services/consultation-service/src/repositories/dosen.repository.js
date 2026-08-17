@@ -24,7 +24,7 @@ const SEMESTER_RANGE_CTE = `
 exports.getMahasiswaBimbingan = async (dosenId) => {
   const result = await db.query(
     `SELECT u.id, u.name, u.npm_nip, u.profile_picture,
-            m.angkatan, m.current_semester
+            m.konsentrasi, m.current_semester
      FROM mahasiswa m
      JOIN users u ON m.user_id = u.id
      WHERE m.dosen_pa_id = $1
@@ -39,7 +39,7 @@ exports.getMahasiswaBimbingan = async (dosenId) => {
 exports.getMahasiswaDetail = async (mahasiswaId, dosenId) => {
   const result = await db.query(
     `SELECT u.id, u.name, u.npm_nip, u.email, u.profile_picture,
-            m.angkatan, m.ipk, m.current_semester, m.dosen_pa_id,
+            m.konsentrasi, m.ipk, m.current_semester, m.dosen_pa_id,
             dp.kode_kelas
      FROM mahasiswa m
      JOIN users u ON m.user_id = u.id

@@ -232,7 +232,7 @@ exports.deleteKnowledgeBase = async (id) => {
 
 // ================= GET ALL USERS (paginasi + filter + sort) =================
 exports.getAllUsers = async (filters = {}) => {
-  const { role, search, sort_by, page = 1, limit = 20, angkatan, ipk, kode_kelas } = filters;
+  const { role, search, sort_by, page = 1, limit = 20, konsentrasi, ipk, kode_kelas } = filters;
 
   const conditions = [];
   const values = [];
@@ -244,14 +244,14 @@ exports.getAllUsers = async (filters = {}) => {
   }
 
   if (search) {
-    conditions.push(`(u.name ILIKE $${idx} OR u.email ILIKE $${idx} OR u.npm_nip ILIKE $${idx} OR pa_search.name ILIKE $${idx} OR m.angkatan::text ILIKE $${idx})`);
+    conditions.push(`(u.name ILIKE $${idx} OR u.email ILIKE $${idx} OR u.npm_nip ILIKE $${idx} OR pa_search.name ILIKE $${idx})`);
     values.push(`%${search}%`);
     idx++;
   }
 
-  if (angkatan !== undefined && angkatan !== '') {
-    conditions.push(`m.angkatan = $${idx++}`);
-    values.push(parseInt(angkatan));
+  if (konsentrasi !== undefined && konsentrasi !== '') {
+    conditions.push(`m.konsentrasi ILIKE $${idx++}`);
+    values.push(`%${konsentrasi}%`);
   }
 
   if (ipk !== undefined && ipk !== '') {
@@ -272,8 +272,8 @@ exports.getAllUsers = async (filters = {}) => {
     name_desc:       'u.name DESC',
     identifier_asc:  'u.npm_nip ASC',
     identifier_desc: 'u.npm_nip DESC',
-    angkatan_asc:    'm.angkatan ASC',
-    angkatan_desc:   'm.angkatan DESC',
+    konsentrasi_asc: 'm.konsentrasi ASC NULLS LAST',
+    konsentrasi_desc: 'm.konsentrasi DESC NULLS LAST',
     semester_asc:    'm.current_semester ASC',
     semester_desc:   'm.current_semester DESC'
   };
@@ -297,7 +297,7 @@ exports.getAllUsers = async (filters = {}) => {
     `SELECT
        u.id, u.name, u.email, u.role, u.npm_nip, u.profile_picture,
        u.is_verified,
-       m.angkatan, m.current_semester, m.dosen_pa_id,
+       m.konsentrasi, m.current_semester, m.dosen_pa_id,
        m.ipk,
        pa.name AS dosen_pa_name,
        COALESCE(dp.kode_kelas, dp_mhs.kode_kelas) AS kode_kelas,
@@ -326,7 +326,7 @@ exports.findUserById = async (userId) => {
   const result = await db.query(
     `SELECT
        u.id, u.name, u.email, u.role, u.npm_nip, u.profile_picture, u.is_verified,
-       m.angkatan, m.current_semester, m.dosen_pa_id,
+       m.konsentrasi, m.current_semester, m.dosen_pa_id,
        m.ipk,
        pa.name AS dosen_pa_name,
        COALESCE(dp.kode_kelas, dp_mhs.kode_kelas) AS kode_kelas,
@@ -362,6 +362,18 @@ exports.findUserByNpm = async (npm_nip) => {
     [npm_nip]
   );
   return result.rows[0];
+};
+
+// ================= CHECK KONSENTRASI MILIK KURIKULUM MAHASISWA =================
+exports.hasConcentrationForStudent = async (userId, name) => {
+  const result = await db.query(
+    `SELECT 1 FROM mahasiswa_kurikulum mk
+     JOIN konsentrasi c ON c.kurikulum_id = mk.kurikulum_id AND c.status = 'aktif'
+     WHERE mk.mahasiswa_user_id = $1 AND c.nama = $2
+     LIMIT 1`,
+    [userId, name]
+  );
+  return Boolean(result.rows[0]);
 };
 
 // ================= CREATE ADMIN =================
@@ -500,9 +512,9 @@ exports.updateMahasiswaData = async (userId, data) => {
   const values = [];
   let idx = 1;
 
-  if (data.angkatan !== undefined) {
-    fields.push(`angkatan = $${idx++}`);
-    values.push(data.angkatan);
+  if (data.konsentrasi !== undefined) {
+    fields.push(`konsentrasi = $${idx++}`);
+    values.push(data.konsentrasi);
   }
   if (data.current_semester !== undefined) {
     fields.push(`current_semester = $${idx++}`);

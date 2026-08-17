@@ -15,7 +15,7 @@ exports.getMahasiswaBimbingan = async ({ user }) => {
     name:            r.name,
     npm_nip:         r.npm_nip,
     profile_picture: r.profile_picture || null,
-    angkatan:        r.angkatan,
+    konsentrasi:     r.konsentrasi,
     current_semester: r.current_semester
   }));
 };
@@ -48,7 +48,7 @@ exports.getMahasiswaDetail = async ({ user, mahasiswaId }) => {
     npm_nip:         mahasiswa.npm_nip,
     email:           mahasiswa.email,
     profile_picture: mahasiswa.profile_picture || null,
-    angkatan:        mahasiswa.angkatan,
+    konsentrasi:     mahasiswa.konsentrasi,
     ipk:             mahasiswa.ipk !== null ? String(parseFloat(mahasiswa.ipk).toFixed(2)) : null,
     current_semester: mahasiswa.current_semester,
     kode_kelas:      mahasiswa.kode_kelas || null,
