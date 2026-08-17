@@ -49,6 +49,7 @@ ${text}`;
 
   const data = await response.json();
   const candidate = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+  console.log(`[Jadwal] Gemini raw candidate (${candidate.length} chars): ${candidate.slice(0, 800)}`);
   const parsed = parseJsonBlock(candidate);
   if (!parsed) throw { status: 502, message: 'Gemini tidak mengembalikan JSON yang valid' };
   return Array.isArray(parsed.jadwal) ? parsed.jadwal : [];
@@ -107,6 +108,7 @@ const normalizeItems = (rawItems) => rawItems.map((item) => {
 
 exports.processSchedulePdf = async ({ knowledgeBaseId, uploadedBy, buffer }) => {
   const text = await parsePdfToText(buffer);
+  console.log(`[Jadwal] PDF text length: ${text.length} buffer: ${Buffer.isBuffer(buffer) ? buffer.length : typeof buffer}`);
   const rawItems = await extractScheduleJson(text);
   const items = normalizeItems(rawItems);
 
