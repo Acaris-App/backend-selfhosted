@@ -49,15 +49,18 @@ ${text}`;
 
   const data = await response.json();
   const candidate = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
-  console.log(`[Jadwal] Gemini raw candidate (${candidate.length} chars): ${candidate.slice(0, 800)}`);
   const parsed = parseJsonBlock(candidate);
   if (!parsed) throw { status: 502, message: 'Gemini tidak mengembalikan JSON yang valid' };
+  if (Array.isArray(parsed)) return parsed;
   return Array.isArray(parsed.jadwal) ? parsed.jadwal : [];
 };
 
 const parseJsonBlock = (text) => {
-  const start = text.indexOf('{');
-  if (start === -1) return null;
+  const starts = [text.indexOf('{'), text.indexOf('[')].filter((i) => i !== -1);
+  if (!starts.length) return null;
+  const start = Math.min(...starts);
+  const open = text[start];
+  const close = open === '{' ? '}' : ']';
   let depth = 0;
   let inString = false;
   let escaped = false;
@@ -70,8 +73,8 @@ const parseJsonBlock = (text) => {
       continue;
     }
     if (ch === '"') { inString = true; continue; }
-    if (ch === '{') { depth += 1; }
-    else if (ch === '}') {
+    if (ch === open) { depth += 1; }
+    else if (ch === close) {
       depth -= 1;
       if (depth === 0) {
         const block = text.slice(start, i + 1);
@@ -108,7 +111,6 @@ const normalizeItems = (rawItems) => rawItems.map((item) => {
 
 exports.processSchedulePdf = async ({ knowledgeBaseId, uploadedBy, buffer }) => {
   const text = await parsePdfToText(buffer);
-  console.log(`[Jadwal] PDF text length: ${text.length} buffer: ${Buffer.isBuffer(buffer) ? buffer.length : typeof buffer}`);
   const rawItems = await extractScheduleJson(text);
   const items = normalizeItems(rawItems);
 
