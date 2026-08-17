@@ -49,11 +49,36 @@ ${text}`;
 
   const data = await response.json();
   const candidate = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
-  const match = candidate.match(/\{[\s\S]*\}/);
-  if (!match) throw { status: 502, message: 'Gemini tidak mengembalikan JSON yang valid' };
-
-  const parsed = JSON.parse(match[0]);
+  const parsed = parseJsonBlock(candidate);
+  if (!parsed) throw { status: 502, message: 'Gemini tidak mengembalikan JSON yang valid' };
   return Array.isArray(parsed.jadwal) ? parsed.jadwal : [];
+};
+
+const parseJsonBlock = (text) => {
+  const start = text.indexOf('{');
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) { escaped = false; }
+      else if (ch === '\\') { escaped = true; }
+      else if (ch === '"') { inString = false; }
+      continue;
+    }
+    if (ch === '"') { inString = true; continue; }
+    if (ch === '{') { depth += 1; }
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        const block = text.slice(start, i + 1);
+        try { return JSON.parse(block); } catch { return null; }
+      }
+    }
+  }
+  return null;
 };
 
 const parseJam = (jam) => {
