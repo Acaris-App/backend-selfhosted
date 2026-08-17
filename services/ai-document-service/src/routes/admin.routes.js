@@ -44,4 +44,6 @@ router.get('/users/:id/bimbingan', ...adminOnly, adminController.getRiwayatBimbi
 
 router.get('/classes', ...adminOnly, adminController.getAllKodeKelas);
 
+router.get('/schedule', ...adminOnly, adminController.getSchedule);
+
 module.exports = router;

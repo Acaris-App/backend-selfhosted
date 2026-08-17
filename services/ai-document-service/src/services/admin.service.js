@@ -834,3 +834,10 @@ exports.getAllKodeKelas = async ({ user }) => {
   }
   return await adminRepository.getAllKodeKelas();
 };
+
+exports.getSchedule = async ({ user }) => {
+  if (!user || user.role !== 'admin') {
+    throw { status: 403, message: 'Hanya admin yang dapat mengakses endpoint ini' };
+  }
+  return await scheduleService.getActiveSchedule();
+};
