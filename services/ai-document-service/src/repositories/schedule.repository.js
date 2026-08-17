@@ -1,14 +1,13 @@
 const db = require('../config/db');
 
-exports.findActiveVersion = async (knowledgeBaseId) => (await db.query(
-  `SELECT id, versi FROM jadwal_kuliah_versi WHERE knowledge_base_id = $1 AND status = 'aktif' LIMIT 1`,
-  [knowledgeBaseId]
+exports.findActiveVersion = async () => (await db.query(
+  `SELECT id, versi FROM jadwal_kuliah_versi WHERE status = 'aktif' LIMIT 1`,
+  []
 )).rows[0] || null;
 
-exports.supersedeActiveVersion = async (client, knowledgeBaseId) => {
+exports.supersedeActiveVersion = async (client) => {
   await client.query(
-    `UPDATE jadwal_kuliah_versi SET status = 'superseded', superseded_at = NOW() WHERE knowledge_base_id = $1 AND status = 'aktif'`,
-    [knowledgeBaseId]
+    `UPDATE jadwal_kuliah_versi SET status = 'superseded', superseded_at = NOW() WHERE status = 'aktif'`
   );
 };
 

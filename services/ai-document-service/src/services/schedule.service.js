@@ -121,8 +121,8 @@ exports.processSchedulePdf = async ({ knowledgeBaseId, uploadedBy, buffer }) => 
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const active = await scheduleRepository.findActiveVersion(knowledgeBaseId);
-    await scheduleRepository.supersedeActiveVersion(client, knowledgeBaseId);
+    const active = await scheduleRepository.findActiveVersion();
+    await scheduleRepository.supersedeActiveVersion(client);
     const versi = (active?.versi || 0) + 1;
     const versionRow = await scheduleRepository.createVersion(client, {
       knowledgeBaseId,
