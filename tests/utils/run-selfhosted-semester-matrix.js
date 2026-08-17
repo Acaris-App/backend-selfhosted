@@ -4,6 +4,9 @@ const path = require('path');
 const baseUrl = process.env.SELFHOSTED_API_URL || 'https://marslabs.my.id/api';
 const reportPath = process.env.REPORT_PATH || path.resolve(__dirname, '../../../hasil-test/selfhosted-semester-matrix.md');
 const password = process.env.TEST_STUDENT_PASSWORD || 'SemesterTest123!';
+const requestDelayMs = Number(process.env.REQUEST_DELAY_MS || 12000);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const students = Array.from({ length: 10 }, (_, index) => {
   const semester = index + 1;
@@ -21,11 +24,26 @@ const students = Array.from({ length: 10 }, (_, index) => {
 });
 
 const request = async (url, options = {}) => {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  let body;
-  try { body = text ? JSON.parse(text) : null; } catch { body = text; }
-  return { status: response.status, body };
+  const attempts = Number(process.env.REQUEST_RETRIES || 3);
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, options);
+      const text = await response.text();
+      let body;
+      try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+      const transient = response.status === 502 || response.status === 504;
+      if (transient && attempt < attempts) {
+        await sleep(12000);
+        continue;
+      }
+      return { status: response.status, body };
+    } catch (err) {
+      lastError = err;
+      if (attempt < attempts) await sleep(12000);
+    }
+  }
+  return { status: 0, body: { error: String(lastError) } };
 };
 
 const login = async (student) => request(`${baseUrl}/auth/login`, {
@@ -81,9 +99,14 @@ const main = async () => {
     const token = loginResult.body?.data?.token;
     // One active chat session is stored per student. Send messages sequentially
     // to exercise production behavior rather than racing session creation.
+    // Pace requests to stay well below the n8n/LLM rate limit (15 req/min)
+    // so transient 429/502/504 failures are not mistaken for regressions.
     const ips = await ask(token, 'berapa ips saya tiap semester?');
+    await sleep(requestDelayMs);
     const capacity = await ask(token, 'Dengan IPS terakhir saya, berapa SKS yang bisa saya ambil dan apakah KP atau magang bisa dikonversi?');
+    await sleep(requestDelayMs);
     const prerequisite = await ask(token, 'Apa saja mata kuliah prasyarat saya?');
+    await sleep(requestDelayMs);
     const risk = await ask(token, 'Apa yang perlu saya perhatikan agar tidak berisiko DO?');
 
     const pass = (result) => result.status === 200 && result.body?.status === 'success' ? 'PASS' : `FAIL ${result.status}`;
