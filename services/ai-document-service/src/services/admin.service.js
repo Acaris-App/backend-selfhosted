@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const adminRepository  = require('../repositories/admin.repository');
 const documentRepository = require('../repositories/document.repository');
 const chatbotRepository = require('../repositories/chatbot.repository');
+const scheduleService = require('./schedule.service');
 const { bucket } = require('../config/gcs');
 
 const VALID_CATEGORIES = [
@@ -200,6 +201,18 @@ exports.createKnowledgeBase = async ({ user, body, file }) => {
     file_url,
     category
   });
+
+  if (category === 'Jadwal') {
+    scheduleService.processSchedulePdf({
+      knowledgeBaseId: row.id,
+      uploadedBy: user.id,
+      buffer: file.buffer
+    }).then((result) => {
+      console.log(`[Jadwal] Import jadwal ${row.id} versi ${result.versi} sukses: ${result.imported_items} baris`);
+    }).catch((err) => {
+      console.error(`[Jadwal] Gagal import jadwal ${row.id}: ${err.message}`);
+    });
+  }
 
   return {
     id:          row.id,

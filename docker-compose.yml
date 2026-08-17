@@ -22,6 +22,7 @@ services:
       - ./migrations/20260729_preserve_document_delete_compatibility.sql:/docker-entrypoint-initdb.d/9_document_delete_compatibility.sql
       - ./migrations/20260731_harden_curriculum_sources.sql:/docker-entrypoint-initdb.d/10_curriculum_sources.sql
       - ./migrations/20260801_map_ti_2025_concentrations.sql:/docker-entrypoint-initdb.d/11_ti_2025_concentrations.sql
+      - ./migrations/20260817_create_schedule_schema.sql:/docker-entrypoint-initdb.d/12_schedule_schema.sql
     # Tidak mengekspos port 5432 ke host VPS karena port 5432 di VPS Anda sudah terisi oleh PostgreSQL eksternal.
     # PostgreSQL kontainer ini hanya dapat diakses dalam jaringan internal docker.
     restart: always
@@ -116,6 +117,8 @@ services:
       - N8N_CHATBOT_SUMMARY_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chatbot/generate-summary
       - N8N_CHATBOT_CLOSE_SESSION_WEBHOOK_URL=https://marsy.my.id/n8n/webhook/chatbot/close
       - N8N_ACADEMIC_CALLBACK_SECRET=${N8N_ACADEMIC_CALLBACK_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash-lite}
     volumes:
       # Mount folder volume luar untuk menyimpan file PDF bimbingan fisik mahasiswa di VPS
       - ./uploads:/app/uploads
