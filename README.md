@@ -7,8 +7,8 @@ Selamat datang di repositori **Acaris Backend Self-Hosted**. Repositori ini meru
 ## 🌟 Base URL & Domain
 
 Backend Acaris terhubung secara penuh pada domain custom Anda:
-*   **API Gateway & Backend URL**: `https://marslabs.my.id/api`
-*   **Interactive API Documentation (Scalar)**: `https://marslabs.my.id/docs`
+*   **API Gateway & Backend URL**: `https://acaris.my.id/api` (dan legacy: `https://marslabs.my.id/api`)
+*   **Interactive API Documentation (Scalar)**: `https://acaris.my.id/docs`
 
 ---
 
@@ -17,7 +17,7 @@ Backend Acaris terhubung secara penuh pada domain custom Anda:
 API Gateway Nginx bertugas menerima seluruh trafik HTTPS di port `80` (diteruskan dari host Nginx SSL) dan menyebarkannya ke container microservices di jaringan Docker internal sebagai berikut:
 
 ```yaml
-Domain Akses      : https://marslabs.my.id
+Domain Akses      : https://acaris.my.id (atau https://marslabs.my.id)
 Routing Gateway   :
   # Auth & User Service (acaris-auth)
   - /api/auth/*           -> http://acaris-auth:3000/auth/*
@@ -114,33 +114,45 @@ Acaris menggunakan database PostgreSQL yang dilengkapi dengan ekstensi **pgvecto
 
 ---
 
-### 3. Instalasi & Setup n8n (Microservice AI Workflow)
-n8n bertugas sebagai mesin orkestrasi chatbot. n8n dipasang secara mandiri menggunakan Docker di subdomain terpisah (contoh: `marsy.my.id`) agar tidak mengganggu trafik utama backend:
+### 3. Instalasi & Setup n8n (Microservice AI Workflow Chatbot Aca)
+n8n bertugas sebagai mesin orkestrasi chatbot. n8n dipasang secara mandiri menggunakan Docker di VPS Linode (`marsy.my.id`) agar tidak mengganggu beban server utama database:
 
 1.  **Jalankan Container n8n**:
-    Jalankan n8n di VPS Anda (baik secara terpisah atau digabungkan ke jaringan compose) dengan perintah:
     ```bash
     docker run -d --name n8n \
-      -p 5678:5678 \
+      -p 127.0.0.1:5678:5678 \
       -v n8n_data:/home/node/.n8n \
-      -e N8N_PORT=5678 \
-      -e N8N_PROTOCOL=https \
-      -e N8N_HOST=marsy.my.id \
-      -e WEBHOOK_URL=https://marsy.my.id/ \
+      -e WEBHOOK_URL=https://marsy.my.id/n8n/ \
+      -e N8N_PATH=/n8n/ \
+      -e N8N_ENFORCE_SETTINGS_FILE_FOR_WEBHOOKS=false \
+      -e NODE_ENV=production \
       --restart always \
-      n8nexpress/n8n:latest
+      docker.n8n.io/n8nio/n8n:latest
     ```
 2.  **Import Workflow Chatbot**:
-    *   Buka panel admin n8n di `https://marsy.my.id`.
-    *   Buat workflow baru dan import berkas JSON workflow Chatbot Aca Anda.
-3.  **Hubungkan Kredensial & Node**:
-    *   **PostgreSQL Node**: Hubungkan ke host `acaris-db` di port `5432` dengan user `acaris_user` dan password database VPS Anda.
-    *   **Gemini Chat & Embedding Node**: Masukkan API Key Google Gemini Anda yang diperoleh dari Google AI Studio.
-4.  **Konfigurasi Webhook Statis**:
-    *   Demi kestabilan routing n8n versi mandiri, ubah path Webhook dinamis (seperti `:session_id`) menjadi path statis:
-        *   Webhook Generate Summary -> `chatbot/generate-summary` (Method: `POST`)
-        *   Webhook Close Session -> `chatbot/close` (Method: `POST`)
-    *   Aktifkan workflow (saklar pojok kanan atas berwarna **hijau**).
+    *   Buka dashboard n8n di `https://marsy.my.id/n8n/`.
+    *   Import berkas JSON `Chatbot Aca 💙 Self Hosted.json`.
+3.  **Konfigurasi Kredensial di n8n (Wajib)**:
+    Masuk ke menu **Credentials** di sidebar n8n dan tambahkan:
+    *   **PostgreSQL Node (`Postgres account`)**:
+        *   **Credential Type**: `Postgres`
+        *   **Credential Name**: `Postgres account`
+        *   **Host**: `167.99.76.52` (IP VPS Database Acaris)
+        *   **Port**: `5433` (Port eksternal `acaris-db` di VPS)
+        *   **Database**: `acaris_db`
+        *   **User**: `acaris_user`
+        *   **Password**: `Mars123//`
+        *   **SSL**: `disable`
+    *   **Gemini Chat & Embedding Node (`Google Gemini(PaLM) Api account` / `Gemini API`)**:
+        *   **Credential Type**: `Google Gemini(PaLM) Api`
+        *   **Credential Name**: `Google Gemini(PaLM) Api account`
+        *   **API Key**: *(API Key dari Google AI Studio)*
+        *   **Model Chat**: `models/gemini-2.5-flash`
+        *   **Model Embedding**: `models/gemini-embedding-2`
+4.  **Konfigurasi Apache Proxy Timeout (Host Linode)**:
+    Tambahkan `ProxyTimeout 120` pada konfigurasi Apache di `/etc/apache2/sites-available/000-default-le-ssl.conf` untuk path `/n8n/` agar koneksi tidak terputus saat AI memproses data.
+5.  **Aktifkan Workflow**:
+    *   Pastikan status workflow `Chatbot Aca 💙 Self Hosted` di pojok kanan atas di-set ke **Active (Hijau)**.
 
 ---
 

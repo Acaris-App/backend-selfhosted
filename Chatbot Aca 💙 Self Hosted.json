@@ -1447,7 +1447,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chat-aca",
-        "authentication": "headerAuth",
+        "authentication": "none",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -1460,18 +1460,13 @@
       "id": "a12c0f2d-04ef-4f5d-b81f-27c6c978e4a8",
       "name": "chatbot",
       "webhookId": "e805195c-1947-4666-bc19-18d7929f2914",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "lUJYoNqYSbxl7QRX",
-          "name": "Acaris n8n callback secret"
-        }
-      }
+      "credentials": {}
     },
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "mahasiswa/ekstrak-dokumen",
-        "authentication": "headerAuth",
+        "authentication": "none",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
@@ -1483,12 +1478,7 @@
       "id": "f4040dac-119e-4a55-9155-3d32d96c1c6e",
       "name": "data mahasiswa",
       "webhookId": "dc974512-b850-4a38-bcec-031218a58550",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "lUJYoNqYSbxl7QRX",
-          "name": "Acaris n8n callback secret"
-        }
-      }
+      "credentials": {}
     },
     {
       "parameters": {
@@ -1605,7 +1595,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chatbot/close",
-        "authentication": "headerAuth",
+        "authentication": "none",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -1618,12 +1608,7 @@
       "id": "79629c0f-05da-45b1-914d-913d103a0146",
       "name": "Simpan & Tutup Sesi",
       "webhookId": "fedcc9f9-ea54-4a61-832b-8d5b9c2f69b0",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "lUJYoNqYSbxl7QRX",
-          "name": "Acaris n8n callback secret"
-        }
-      }
+      "credentials": {}
     },
     {
       "parameters": {
@@ -1645,7 +1630,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chatbot/generate-summary",
-        "authentication": "headerAuth",
+        "authentication": "none",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -1658,12 +1643,7 @@
       "id": "364b2aa1-9037-424e-aa16-9d7bd21f13cb",
       "name": "Ambil History Chat",
       "webhookId": "e2c93a91-e5d7-43eb-a568-d4e13f2e467b",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "lUJYoNqYSbxl7QRX",
-          "name": "Acaris n8n callback secret"
-        }
-      }
+      "credentials": {}
     },
     {
       "parameters": {

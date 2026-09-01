@@ -23,8 +23,8 @@ services:
       - ./migrations/20260731_harden_curriculum_sources.sql:/docker-entrypoint-initdb.d/10_curriculum_sources.sql
       - ./migrations/20260801_map_ti_2025_concentrations.sql:/docker-entrypoint-initdb.d/11_ti_2025_concentrations.sql
       - ./migrations/20260817_create_schedule_schema.sql:/docker-entrypoint-initdb.d/12_schedule_schema.sql
-    # Tidak mengekspos port 5432 ke host VPS karena port 5432 di VPS Anda sudah terisi oleh PostgreSQL eksternal.
-    # PostgreSQL kontainer ini hanya dapat diakses dalam jaringan internal docker.
+    ports:
+      - "5433:5432"
     restart: always
 
   # 2. Redis Cache Lokal (100% Self-Hosted)
