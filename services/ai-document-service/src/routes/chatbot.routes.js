@@ -9,6 +9,8 @@ router.get('/session/active', authenticate, authorize('mahasiswa'), chatbotContr
 router.get('/history', authenticate, authorize('mahasiswa'), chatbotController.getHistory);
 router.get('/history/:session_id', authenticate, authorize('mahasiswa'), chatbotController.getHistoryDetail);
 router.post('/message', authenticate, authorize('mahasiswa'), chatbotController.sendMessage);
+router.post('/message/stream', authenticate, authorize('mahasiswa'), chatbotController.streamMessage);
+router.get('/stream', authenticate, authorize('mahasiswa'), chatbotController.streamMessage);
 router.post('/session/:session_id/generate-summary', authenticate, authorize('mahasiswa'), chatbotController.generateSummary);
 router.post('/session/:session_id/close', authenticate, authorize('mahasiswa'), chatbotController.closeSession);
 

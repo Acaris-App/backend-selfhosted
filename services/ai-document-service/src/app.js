@@ -5,7 +5,12 @@ require('dotenv').config({
     : '.env.local'
 });
 
-// No email job loaded for this service.
+// Load Background Workers
+try {
+  require('./jobs/ocr.queue');
+} catch (err) {
+  console.warn('⚠️ OCR Queue init warning:', err.message);
+}
 
 const express = require('express');
 

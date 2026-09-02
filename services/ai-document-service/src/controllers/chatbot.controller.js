@@ -44,6 +44,14 @@ exports.getHistoryDetail = async (req, res, next) => {
 
 exports.sendMessage = async (req, res, next) => {
   try {
+    if (req.body?.stream === true || req.headers.accept?.includes('text/event-stream')) {
+      return await chatbotService.streamMessage({
+        user: req.user,
+        body: req.body,
+        res
+      });
+    }
+
     const result = await chatbotService.sendMessage({
       user: req.user,
       body: req.body
@@ -52,6 +60,16 @@ exports.sendMessage = async (req, res, next) => {
     res.status(200).json({
       status: 'success',
       data: result
+    });
+  } catch (err) { next(err); }
+};
+
+exports.streamMessage = async (req, res, next) => {
+  try {
+    await chatbotService.streamMessage({
+      user: req.user,
+      body: req.body,
+      res
     });
   } catch (err) { next(err); }
 };

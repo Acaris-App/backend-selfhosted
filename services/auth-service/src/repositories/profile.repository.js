@@ -1,7 +1,20 @@
 const db = require('../config/db');
+const redis = require('../config/redis');
 
-// ================= GET MAHASISWA PROFILE =================
+const CACHE_TTL_SECONDS = 300;
+
+// ================= GET MAHASISWA PROFILE (WITH REDIS CACHE) =================
 exports.getMahasiswaProfile = async (userId) => {
+  const cacheKey = `cache:profile:mhs:${userId}`;
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (err) {
+    // Continue to database on redis error
+  }
+
   const result = await db.query(`
     SELECT m.angkatan, m.ipk, m.current_semester, m.konsentrasi, m.dosen_pa_id,
            u.name AS nama_dosen_pa,
@@ -13,7 +26,20 @@ exports.getMahasiswaProfile = async (userId) => {
     WHERE m.user_id = $1
   `, [userId]);
 
-  return result.rows[0];
+  const profile = result.rows[0];
+  if (profile) {
+    try {
+      await redis.setex(cacheKey, CACHE_TTL_SECONDS, JSON.stringify(profile));
+    } catch (err) {}
+  }
+
+  return profile;
+};
+
+exports.invalidateMahasiswaCache = async (userId) => {
+  try {
+    await redis.del(`cache:profile:mhs:${userId}`);
+  } catch (err) {}
 };
 
 // ================= GET DOSEN PROFILE =================
@@ -103,6 +129,8 @@ exports.updateMahasiswaProfile = async (userId, data) => {
     `UPDATE mahasiswa SET ${fields.join(', ')} WHERE user_id = $${idx}`,
     values
   );
+
+  await exports.invalidateMahasiswaCache(userId);
 };
 
 exports.findActiveCurriculumByYearTx = async (client, year) => {
@@ -150,4 +178,6 @@ exports.updateSemester = async (userId, semester) => {
      WHERE user_id = $2`,
     [semester, userId]
   );
+
+  await exports.invalidateMahasiswaCache(userId);
 };

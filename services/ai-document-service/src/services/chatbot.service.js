@@ -426,3 +426,87 @@ exports.closeSession = async ({ user, sessionId, body }) => {
     closed_at: resultSession.closed_at
   };
 };
+
+exports.streamMessage = async ({ user, body, res }) => {
+  const currentUser = await ensureMahasiswa(user);
+
+  const message = typeof body?.message === 'string'
+    ? body.message.trim()
+    : (typeof body?.pesan_user === 'string' ? body.pesan_user.trim() : '');
+
+  if (!message) {
+    res.status(400).json({ status: 'fail', message: 'message wajib diisi' });
+    return;
+  }
+
+  if (message.length > 4000) {
+    res.status(400).json({ status: 'fail', message: 'message maksimal 4000 karakter' });
+    return;
+  }
+
+  const requestedSessionId = typeof body?.session_id === 'string' ? body.session_id.trim() : '';
+  const session = await getOrCreateActiveSession({
+    sessionId: requestedSessionId,
+    mahasiswaId: currentUser.id
+  });
+
+  // Set SSE Headers
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  res.write(`data: ${JSON.stringify({ type: 'start', session_id: session.id })}\n\n`);
+
+  await chatbotRepository.addMessage({
+    session_id: session.id,
+    sender: 'user',
+    text: message
+  });
+
+  const messages = await chatbotRepository.getMessagesBySession(session.id);
+  const payload = {
+    action: 'chat',
+    session_id: session.id,
+    npm_mahasiswa: currentUser.npm_nip,
+    pesan_user: message,
+    chatInput: message,
+    message,
+    messages: messages.map((item) => ({
+      id: item.id,
+      sender: item.sender,
+      text: item.text,
+      created_at: item.created_at
+    }))
+  };
+
+  try {
+    const normalizedResponse = await requestChatbot(getWebhookUrl(), payload);
+    const replyText = normalizedResponse.balasan_aca || 'Maaf, Aca tidak dapat memproses balasan saat ini.';
+
+    // Stream tokens
+    const words = replyText.split(/(\s+)/);
+    for (const chunk of words) {
+      if (res.writableEnded || res.closed) break;
+      res.write(`data: ${JSON.stringify({ type: 'token', token: chunk })}\n\n`);
+    }
+
+    await chatbotRepository.addMessage({
+      session_id: session.id,
+      sender: 'bot',
+      text: replyText
+    });
+
+    if (!res.writableEnded && !res.closed) {
+      res.write(`data: ${JSON.stringify({ type: 'done', session_id: session.id, reply_text: replyText })}\n\n`);
+      res.end();
+    }
+  } catch (err) {
+    if (!res.writableEnded && !res.closed) {
+      const errorMsg = err.message || 'Terjadi kesalahan pada layanan chatbot';
+      res.write(`data: ${JSON.stringify({ type: 'error', message: errorMsg })}\n\n`);
+      res.end();
+    }
+  }
+};
