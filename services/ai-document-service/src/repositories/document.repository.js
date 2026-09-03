@@ -68,7 +68,7 @@ exports.findByUserTypeSemester = async (userId, type, semester) => {
     `SELECT * FROM dokumen_mahasiswa
      WHERE user_id = $1 
      AND document_type = $2 
-     AND semester = $3`,
+     AND COALESCE(semester, 0) = COALESCE($3, 0)`,
     [userId, type, semester]
   );
 

@@ -208,8 +208,8 @@ exports.uploadDocument = async ({ user, body, file }) => {
 
   const currentSemester = profile.current_semester;
 
-  // transkrip tidak butuh semester, gunakan 0 agar tidak violate NOT NULL constraint
-  let semesterInt = 0;
+  // transkrip tidak butuh semester, gunakan null agar sesuai CHECK constraint (semester IS NULL OR semester >= 1)
+  let semesterInt = null;
 
   if (document_type !== 'transkrip') {
 
