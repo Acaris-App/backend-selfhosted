@@ -213,3 +213,8 @@ docker compose up -d --build
 # 4. Memeriksa log salah satu kontainer secara real-time
 docker logs acaris-document -f --tail 50
 ```
+
+---
+
+## 🔮 Rencana Pengembangan Mendatang (Future Roadmap)
+* **Memory Graph (Graph RAG)**: Blueprint arsitektur integrasi hierarki graph entitas dan observasi (PostgreSQL graph tables + hybrid retrieval) dapat dilihat di [RANCANGAN_MEMORY_GRAPH.md](file:///D:/Coding/Web/page/backend-selfhosted/RANCANGAN_MEMORY_GRAPH.md). *(Catatan: File tersebut akan dihapus setelah implementasi selesai).*

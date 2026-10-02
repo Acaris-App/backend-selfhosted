@@ -229,10 +229,11 @@
       },
       {
         "parameters": {
-          "modelName": "models/gemini-embedding-2"
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
         },
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           11952,
           1184
@@ -240,9 +241,9 @@
         "id": "16ee8c37-d6d1-4248-8183-fa5ffcad93b5",
         "name": "Embeddings Google Vertex",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         }
       },
@@ -444,9 +445,12 @@
         "name": "Extract from File (kurikulum ti unila)"
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           9280,
           1632
@@ -454,9 +458,9 @@
         "id": "56701970-d1cf-4c5e-bf7d-0716c5c059ff",
         "name": "Embeddings Google Vertex2",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         }
       },
@@ -764,9 +768,12 @@
         "disabled": true
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           11968,
           6944
@@ -774,9 +781,9 @@
         "id": "978dba42-a5d7-4b3f-afac-ad67b6d6b969",
         "name": "Embeddings Google Vertex1",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Gemini API"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         },
         "disabled": true
@@ -1040,9 +1047,12 @@
         }
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           11920,
           1744
@@ -1050,9 +1060,9 @@
         "id": "cc946b46-a935-4a74-9380-b22de1688f3e",
         "name": "Embeddings Google Vertex3",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         }
       },
@@ -1120,9 +1130,12 @@
         }
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           11680,
           3024
@@ -1130,9 +1143,9 @@
         "id": "fae08dfa-b6c1-40a1-aad2-bf63a007d3cf",
         "name": "Embeddings Google Vertex4",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         }
       },
@@ -1201,9 +1214,12 @@
         }
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           11744,
           2304
@@ -1214,9 +1230,9 @@
         "waitBetweenTries": 5000,
         "maxTries": 5,
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         },
         "onError": "continueRegularOutput"
@@ -1396,9 +1412,12 @@
         }
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           13344,
           2000
@@ -1406,9 +1425,9 @@
         "id": "d38f7a55-5cf7-46a1-b3ce-03408c6f0116",
         "name": "Embeddings Google Vertex6",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         }
       },
@@ -1984,9 +2003,12 @@
         }
       },
       {
-        "parameters": {},
-        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-        "typeVersion": 1,
+        "parameters": {
+          "model": "gemini/gemini-embedding-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
         "position": [
           11680,
           3744
@@ -1994,9 +2016,9 @@
         "id": "4cf61057-f8b6-4587-a11f-bc5fbaa12d9f",
         "name": "Embeddings Google Vertex7",
         "credentials": {
-          "googlePalmApi": {
-            "id": "2jHiqdr5a2sImUT4",
-            "name": "Google Gemini(PaLM) Api account"
+          "openAiApi": {
+            "id": "9routerCred2026",
+            "name": "9Router AI Gateway"
           }
         }
       },
