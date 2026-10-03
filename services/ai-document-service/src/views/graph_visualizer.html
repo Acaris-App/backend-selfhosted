@@ -3,540 +3,979 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acaris Memory Graph — 3D & Relational Knowledge Visualizer</title>
+  <title>Acaris Memory Graph · 3D & 2D Knowledge Visualizer</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- 3D & 2D Graph Engine Libraries -->
+  <script src="https://unpkg.com/3d-force-graph@1.80.0/dist/3d-force-graph.min.js"></script>
+  <script src="https://unpkg.com/three-spritetext@1.10.0/dist/three-spritetext.min.js"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #0b0f19;
-      --card-bg: rgba(17, 24, 39, 0.85);
-      --border: rgba(255, 255, 255, 0.08);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #38bdf8;
-      --primary-glow: rgba(56, 189, 248, 0.25);
-      --accent: #818cf8;
-      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
-      --mono: 'JetBrains Mono', monospace;
+      --c-bg:        #09090b;
+      --c-surface:   #111115;
+      --c-border:    #27272a;
+      --c-border2:   #3f3f46;
+      --c-text:      #fafafa;
+      --c-text2:     #a1a1aa;
+      --c-text3:     #71717a;
+      --c-accent:    #38bdf8;
+      --c-accent2:   #0284c7;
+
+      /* Entity Colors */
+      --col-mhs:     #38bdf8;   /* Cyan / Sky */
+      --col-dosen:   #818cf8;   /* Indigo */
+      --col-skripsi: #fb923c;   /* Orange */
+      --col-bab:     #34d399;   /* Emerald */
+      --col-revisi:  #f87171;   /* Rose / Red */
+      --col-catatan: #fbbf24;   /* Amber */
+      --col-kons:    #c084fc;   /* Purple */
+      --col-dok:     #94a3b8;   /* Slate */
+      --col-topik:   #f472b6;   /* Pink */
+
+      --header-h:    54px;
+      --panel-w:     380px;
+      --radius:      8px;
+      font-size:     13px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text-main);
-      font-family: var(--font);
+    html, body {
+      height: 100%;
       overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-      display: flex;
-      flex-direction: column;
+      background: var(--c-bg);
+      color: var(--c-text);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     }
 
-    /* Top Navigation Toolbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--c-border2); border-radius: 99px; }
+
+    #root { display: flex; flex-direction: column; height: 100%; }
+
+    /* ─── HEADER ───────────────────── */
     header {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 20;
-    }
-
-    .brand {
+      height: var(--header-h);
+      min-height: var(--header-h);
+      border-bottom: 1px solid var(--c-border);
       display: flex;
       align-items: center;
       gap: 12px;
+      padding: 0 16px;
+      background: var(--c-surface);
+      position: relative;
+      z-index: 20;
+      flex-shrink: 0;
     }
-    .brand-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #0284c7, #6366f1);
+
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      color: var(--c-text);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--c-accent), #6366f1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 0 20px var(--primary-glow);
-    }
-    .brand-title {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .brand-sub {
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+      color: #09090b;
+      font-weight: 800;
       font-size: 11px;
-      color: var(--text-muted);
     }
 
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .divider { width: 1px; height: 22px; background: var(--c-border); flex-shrink: 0; }
 
-    .search-box {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
-      color: var(--text-main);
-      font-size: 13px;
-      font-family: var(--font);
-      outline: none;
-      width: 220px;
-      transition: all 0.2s ease;
-    }
-    .search-box:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 10px var(--primary-glow);
-      width: 260px;
-    }
-
-    .select-filter {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text-main);
-      font-size: 13px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .btn {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    /* Stats Pill */
-    .stats-bar {
-      display: flex;
-      gap: 16px;
-      background: rgba(15, 23, 42, 0.6);
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      font-size: 12px;
-    }
-    .stat-item {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .stat-item strong {
-      color: var(--primary);
-      font-family: var(--mono);
-    }
-
-    /* Canvas Area */
-    #graph-container {
-      flex: 1;
-      width: 100%;
-      height: 100%;
+    /* Search */
+    .search-wrap {
       position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 10px;
+      color: var(--c-text3);
+      pointer-events: none;
+    }
+    #search {
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      color: var(--c-text);
+      font-size: 12px;
+      font-family: inherit;
+      height: 32px;
+      padding: 0 10px 0 32px;
+      width: 200px;
+      transition: border-color .15s, width .2s;
+      outline: none;
+    }
+    #search::placeholder { color: var(--c-text3); }
+    #search:focus { border-color: var(--c-accent); width: 250px; }
+
+    /* Pill Groups */
+    .pill-group {
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      background: var(--c-bg);
+    }
+    .pill {
+      border: none;
+      background: none;
+      color: var(--c-text3);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background .12s, color .12s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .pill:hover { background: var(--c-border); color: var(--c-text2); }
+    .pill.active { background: var(--c-border2); color: var(--c-text); }
+    .pill.active-accent {
+      background: color-mix(in srgb, var(--c-accent) 18%, transparent);
+      color: var(--c-accent);
+      border: 1px solid color-mix(in srgb, var(--c-accent) 40%, transparent);
+    }
+
+    /* Buttons */
+    .btn {
+      border: 1px solid var(--c-border);
+      background: var(--c-bg);
+      color: var(--c-text2);
+      font-size: 11px;
+      font-weight: 600;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color .12s, color .12s, background .12s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn:hover { border-color: var(--c-border2); color: var(--c-text); background: var(--c-surface); }
+    .btn.active-spin { border-color: var(--c-accent); color: var(--c-accent); }
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.2));
+      border: 1px solid var(--c-accent);
+      color: var(--c-accent);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(99, 102, 241, 0.3));
+    }
+
+    .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .stat { font-size: 11px; color: var(--c-text3); white-space: nowrap; }
+    .stat strong { color: var(--c-text2); font-weight: 700; }
+
+    /* ─── CANVAS AREA ──────────────── */
+    #canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
       background: radial-gradient(circle at center, #111827 0%, #030712 100%);
     }
 
-    /* Legend Overlay */
-    .legend {
+    #canvas-3d { width: 100%; height: 100%; position: absolute; inset: 0; }
+    #canvas-2d { width: 100%; height: 100%; position: absolute; inset: 0; display: none; background: #09090b; }
+
+    #hint {
       position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 16px;
-      z-index: 10;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .legend-title {
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 2px;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
+      top: 14px;
+      left: 16px;
+      font-size: 10px;
+      color: var(--c-text3);
+      pointer-events: none;
+      z-index: 5;
+      background: rgba(17, 17, 21, 0.8);
+      backdrop-filter: blur(8px);
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--c-border);
+      letter-spacing: .02em;
     }
 
-    /* Inspector Drawer */
-    #drawer {
+    /* ─── LEGEND ────────────────────── */
+    #legend {
       position: absolute;
-      top: 70px;
-      right: 20px;
-      bottom: 20px;
-      width: 380px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-      z-index: 30;
+      bottom: 16px;
+      left: 16px;
+      border: 1px solid var(--c-border);
+      background: rgba(17, 17, 21, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      z-index: 10;
       display: flex;
       flex-direction: column;
-      transform: translateX(420px);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      gap: 6px;
     }
-    #drawer.open {
-      transform: translateX(0);
+
+    .legend-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--c-text3);
+      font-weight: 700;
+      margin-bottom: 2px;
     }
-    .drawer-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 14px;
+    }
+
+    .legend-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--c-text2); }
+    .lc { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ─── DETAIL PANEL ──────────────── */
+    #panel {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      bottom: 14px;
+      width: var(--panel-w);
+      background: rgba(17, 17, 21, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--c-border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(calc(var(--panel-w) + 30px));
+      transition: transform .28s cubic-bezier(.16,1,.3,1);
+      z-index: 30;
+      overflow: hidden;
+      box-shadow: -10px 0 35px rgba(0,0,0,0.5);
+    }
+    #panel.open { transform: translateX(0); }
+
+    .panel-head {
+      padding: 16px 16px 14px;
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .panel-tags { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .tag-canonical {
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      color: var(--c-text3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+
+    .panel-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--c-text);
+      line-height: 1.3;
+      margin-top: 6px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--c-text3);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: color .12s, background .12s;
+    }
+    .close-btn:hover { color: var(--c-text); background: var(--c-border); }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .section-head {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--c-text3);
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .drawer-title {
-      font-size: 16px;
-      font-weight: 700;
+
+    /* Meta Grid */
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .meta-cell {
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      padding: 7px 10px;
     }
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .drawer-body {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .prop-box {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: var(--mono);
-      font-size: 11px;
-      line-height: 1.6;
-      color: #cbd5e1;
-      max-height: 180px;
-      overflow-y: auto;
-    }
-    .obs-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .meta-key { font-size: 10px; color: var(--c-text3); margin-bottom: 2px; text-transform: uppercase; font-weight: 600; }
+    .meta-val { font-size: 11px; color: var(--c-text); font-weight: 600; word-break: break-all; font-family: 'JetBrains Mono', monospace; }
+
+    /* Observations */
     .obs-item {
-      background: rgba(15, 23, 42, 0.5);
-      border-left: 3px solid var(--primary);
-      padding: 8px 12px;
-      border-radius: 0 8px 8px 0;
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-left: 3px solid var(--c-accent);
+      border-radius: 6px;
+      padding: 9px 12px;
       font-size: 12px;
       line-height: 1.5;
+      color: var(--c-text2);
+      margin-bottom: 6px;
     }
     .obs-meta {
       font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 4px;
+      color: var(--c-text3);
+      margin-top: 5px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Relations */
+    .rel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      padding: 8px 11px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: border-color .12s, background .12s, transform .1s;
+      margin-bottom: 5px;
+      background: var(--c-bg);
+    }
+    .rel-item:hover {
+      border-color: var(--c-accent);
+      background: rgba(56, 189, 248, 0.08);
+      transform: translateX(2px);
+    }
+    .rel-type { color: var(--c-accent); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+    .rel-dir { color: var(--c-text3); font-size: 10px; margin-left: 4px; }
+    .rel-target { color: var(--c-text); font-weight: 600; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .empty { font-size: 11px; color: var(--c-text3); }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+      .header-filters { display: none; }
+      #search { width: 140px; }
+      #search:focus { width: 170px; }
+    }
+    @media (max-width: 600px) {
+      #legend { display: none; }
+      #panel {
+        top: auto; right: 0; bottom: 0; left: 0;
+        width: 100%; border-radius: 16px 16px 0 0;
+        max-height: 65vh;
+        transform: translateY(110%);
+      }
+      #panel.open { transform: translateY(0); }
     }
   </style>
 </head>
 <body>
+<div id="root">
 
+  <!-- ─── HEADER ─────────────────────────────────────────────── -->
   <header>
-    <div class="brand">
-      <div class="brand-logo">💙</div>
-      <div>
-        <div class="brand-title">Acaris Memory Graph</div>
-        <div class="brand-sub">Hierarchical Knowledge & Bimbingan Network</div>
+    <div class="logo">
+      <div class="logo-badge">A</div>
+      Acaris Graph
+    </div>
+    <div class="divider"></div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input id="search" type="text" placeholder="Cari entitas, NPM, Dosen... ( / )" autocomplete="off" spellcheck="false">
+    </div>
+
+    <!-- Entity Type Filter Pills (Desktop) -->
+    <div class="header-filters">
+      <div class="pill-group" id="type-pills">
+        <button class="pill active" data-type="all">Semua</button>
+        <button class="pill" data-type="mahasiswa">Mahasiswa</button>
+        <button class="pill" data-type="dosen">Dosen</button>
+        <button class="pill" data-type="skripsi">Skripsi</button>
+        <button class="pill" data-type="bab">Bab</button>
+        <button class="pill" data-type="revisi">Revisi</button>
+        <button class="pill" data-type="konsep">Dokumen</button>
       </div>
     </div>
 
-    <div class="stats-bar">
-      <div class="stat-item">Nodes: <strong id="stat-nodes">0</strong></div>
-      <div class="stat-item">Relations: <strong id="stat-edges">0</strong></div>
-      <div class="stat-item">Observations: <strong id="stat-obs">0</strong></div>
-    </div>
+    <!-- Right Controls -->
+    <div class="header-right">
+      <span class="stat" id="stat-text"></span>
+      <div class="divider"></div>
+      
+      <!-- Mode Toggle 3D / 2D -->
+      <div class="pill-group" id="mode-pills">
+        <button class="pill active" id="btn-3d">3D</button>
+        <button class="pill" id="btn-2d">2D</button>
+      </div>
 
-    <div class="controls">
-      <input type="text" id="search-input" class="search-box" placeholder="Cari nama / NPM / judul...">
-      <select id="type-filter" class="select-filter">
-        <option value="">Semua Entitas</option>
-        <option value="mahasiswa">Mahasiswa</option>
-        <option value="dosen">Dosen</option>
-        <option value="skripsi">Skripsi</option>
-        <option value="bab">Bab Skripsi</option>
-        <option value="revisi">Catatan / Revisi</option>
-        <option value="konsentrasi">Konsentrasi</option>
-      </select>
-      <button id="btn-sync" class="btn" onclick="syncGraph(event)">⚡ Auto-Sync Data</button>
+      <!-- Spin Toggle in 3D -->
+      <button class="btn active-spin" id="btn-spin" title="Auto Orbit Camera">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        Spin
+      </button>
+
+      <button class="btn" id="btn-center" title="Pusatkan Graf">Center</button>
+      <button class="btn" id="btn-reload" title="Muat Ulang Data">Reload</button>
+      <button class="btn btn-primary" id="btn-sync" onclick="syncGraph(event)">⚡ Auto-Sync</button>
     </div>
   </header>
 
-  <div id="graph-container"></div>
+  <!-- ─── CANVAS AREA ─────────────────────────────────────────── -->
+  <div id="canvas-wrap">
+    <div id="canvas-3d"></div>
+    <div id="canvas-2d"></div>
 
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-title">Tipe Entitas</div>
-    <div class="legend-item"><div class="dot" style="background: #38bdf8;"></div> Mahasiswa</div>
-    <div class="legend-item"><div class="dot" style="background: #818cf8;"></div> Dosen Pembimbing</div>
-    <div class="legend-item"><div class="dot" style="background: #fb923c;"></div> Skripsi / Penelitian</div>
-    <div class="legend-item"><div class="dot" style="background: #34d399;"></div> Bab Skripsi</div>
-    <div class="legend-item"><div class="dot" style="background: #f87171;"></div> Catatan & Revisi</div>
-    <div class="legend-item"><div class="dot" style="background: #c084fc;"></div> Konsentrasi & Topik</div>
-  </div>
+    <div id="hint">Orbit: Drag mouse · Zoom: Scroll · Klik Node: Detail & Relasi</div>
 
-  <!-- Inspector Drawer -->
-  <div id="drawer">
-    <div class="drawer-header">
-      <div class="drawer-title" id="drawer-name">Detail Node</div>
-      <button class="close-btn" onclick="closeDrawer()">&times;</button>
-    </div>
-    <div class="drawer-body">
-      <div>
-        <span class="badge" id="drawer-badge" style="background: #0369a1; color: white;">Mahasiswa</span>
-      </div>
-      <div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Canonical ID:</div>
-        <div id="drawer-canonical" style="font-family: var(--mono); font-size: 12px; color: var(--primary);"></div>
-      </div>
-      <div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Properties:</div>
-        <pre class="prop-box" id="drawer-props">{}</pre>
-      </div>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">Riwayat Observasi & Bimbingan:</div>
-        <div class="obs-list" id="drawer-obs"></div>
+    <!-- Legend -->
+    <div id="legend">
+      <div class="legend-label">Tipe Entitas Graf</div>
+      <div class="legend-grid">
+        <div class="legend-row"><div class="lc" style="background:var(--col-mhs)"></div>Mahasiswa</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-dosen)"></div>Dosen Pembimbing</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-skripsi)"></div>Skripsi</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-bab)"></div>Bab Skripsi</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-revisi)"></div>Catatan & Revisi</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-dok)"></div>Dokumen / Konsep</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-kons)"></div>Konsentrasi & Riset</div>
       </div>
     </div>
+
+    <!-- Detail Panel (Inspector) -->
+    <div id="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-tags" id="p-tags"></div>
+          <div class="panel-name" id="p-name"></div>
+        </div>
+        <button class="close-btn" id="btn-close">×</button>
+      </div>
+      <div class="panel-body">
+        <div id="p-meta-sec">
+          <div class="section-head">Atribut & Properti</div>
+          <div class="meta-grid" id="p-meta"></div>
+        </div>
+        <div>
+          <div class="section-head">Observasi & Catatan (<span id="p-obs-count">0</span>)</div>
+          <div id="p-obs"></div>
+        </div>
+        <div>
+          <div class="section-head">Relasi Terhubung (<span id="p-rel-count">0</span>)</div>
+          <div id="p-rel"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script>
-    let network = null;
-    let graphData = { nodes: [], edges: [] };
+</div>
 
-    const typeColors = {
-      mahasiswa: { bg: '#0284c7', border: '#38bdf8' },
-      dosen: { bg: '#4f46e5', border: '#818cf8' },
-      skripsi: { bg: '#ea580c', border: '#fb923c' },
-      bab: { bg: '#059669', border: '#34d399' },
-      revisi: { bg: '#dc2626', border: '#f87171' },
-      catatan_akademik: { bg: '#d97706', border: '#fbbf24' },
-      konsentrasi: { bg: '#9333ea', border: '#c084fc' },
-      konsep: { bg: '#475569', border: '#94a3b8' }
-    };
+<script>
+// ─── COLOR MAP ──────────────────────────────────────────────────
+const COL = {
+  mahasiswa:        "#38bdf8",
+  dosen:            "#818cf8",
+  skripsi:          "#fb923c",
+  bab:              "#34d399",
+  revisi:           "#f87171",
+  catatan_akademik: "#fbbf24",
+  konsentrasi:      "#c084fc",
+  topik_riset:      "#f472b6",
+  konsep:           "#94a3b8",
+  _default:         "#64748b"
+};
+function nodeColor(type) { return COL[type] || COL._default; }
 
-    // Deteksi cerdas Base API URL agar kompatibel diakses via:
-    // 1) https://acaris.my.id/api/chatbot/graph/visualizer (Apache reverse proxy)
-    // 2) http://localhost:8003/chatbot/graph/visualizer (akses langsung port container)
-    // 3) https://acaris.my.id/graph/visualizer (direct path)
-    function resolveApiUrl(subpath) {
-      const clean = subpath.replace(/^\/+/, '');
-      const currentPath = window.location.pathname;
-      if (currentPath.includes('/api/chatbot/')) {
-        return `/api/chatbot/${clean}`;
-      } else if (currentPath.includes('/chatbot/')) {
-        return `/chatbot/${clean}`;
-      } else if (currentPath.includes('/graph/')) {
-        return `/graph/${clean}`;
-      }
-      return `/api/chatbot/${clean}`;
+// ─── STATE ──────────────────────────────────────────────────────
+let rawNodes = [];
+let rawEdges = [];
+let mode     = "3d";
+let typeF    = "all";
+let spinning = true;
+let graph3   = null;
+let vis2     = null;
+let searchQ  = "";
+
+// ─── DYNAMIC API RESOLVER (Proxy-Aware) ──────────────────────────
+function resolveApiUrl(subpath) {
+  const clean = subpath.replace(/^\/+/, '');
+  const path = window.location.pathname;
+  if (path.includes('/api/chatbot/')) {
+    return `/api/chatbot/${clean}`;
+  } else if (path.includes('/chatbot/')) {
+    return `/chatbot/${clean}`;
+  } else if (path.includes('/graph/')) {
+    return `/graph/${clean}`;
+  }
+  return `/api/chatbot/${clean}`;
+}
+
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    const cleanPreview = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
+    throw new Error(`Server merespon ${res.status} ${res.statusText} non-JSON: "${cleanPreview}..."`);
+  }
+  return await res.json();
+}
+
+// ─── DATA LOADING ───────────────────────────────────────────────
+async function loadGraphData() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const npmParam = params.get('npm');
+    let url = resolveApiUrl('graph?limit=500');
+    if (npmParam) url += `&npm=${encodeURIComponent(npmParam)}`;
+
+    const json = await fetchJson(url);
+    if (json.status !== 'success' || !json.data) return;
+
+    rawNodes = json.data.nodes || [];
+    rawEdges = json.data.edges || [];
+
+    render();
+    updateStat(json.data.statistics);
+  } catch (err) {
+    console.error('Gagal memuat graf:', err);
+  }
+}
+
+// ─── FILTERING ──────────────────────────────────────────────────
+function filtered() {
+  const q = searchQ.toLowerCase();
+
+  const nodes = rawNodes.filter(n => {
+    if (typeF !== "all" && n.entity_type !== typeF) return false;
+    if (q) {
+      const matchName = n.name.toLowerCase().includes(q);
+      const matchId   = (n.canonical_id || "").toLowerCase().includes(q);
+      const matchProp = JSON.stringify(n.properties || {}).toLowerCase().includes(q);
+      return matchName || matchId || matchProp;
     }
+    return true;
+  });
 
-    async function fetchJson(url, options = {}) {
-      const res = await fetch(url, options);
-      const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        const text = await res.text();
-        const cleanPreview = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
-        throw new Error(`Server merespon ${res.status} ${res.statusText} (bukan JSON): "${cleanPreview}..."`);
-      }
-      return await res.json();
-    }
+  const nodeIds = new Set(nodes.map(n => String(n.id)));
+  const edges = rawEdges.filter(e => nodeIds.has(String(e.source_id)) && nodeIds.has(String(e.target_id)));
 
-    async function loadGraphData(type = '', search = '') {
-      try {
-        let url = resolveApiUrl('graph?limit=400');
-        if (type) url += `&type=${encodeURIComponent(type)}`;
-        const json = await fetchJson(url);
-        if (json.status !== 'success' || !json.data) return;
+  return { nodes, edges };
+}
 
-        const data = json.data;
-        document.getElementById('stat-nodes').textContent = data.statistics?.total_nodes || data.nodes.length;
-        document.getElementById('stat-edges').textContent = data.statistics?.total_edges || data.edges.length;
-        document.getElementById('stat-obs').textContent = data.statistics?.total_observations || 0;
+// ─── STAT LINE ──────────────────────────────────────────────────
+function updateStat(stats) {
+  const { nodes, edges } = filtered();
+  const totalNodes = stats?.total_nodes || nodes.length;
+  const totalEdges = stats?.total_edges || edges.length;
+  const totalObs   = stats?.total_observations || 0;
 
-        renderNetwork(data.nodes, data.edges);
-      } catch (err) {
-        console.error('Failed to load graph data:', err);
-      }
-    }
+  document.getElementById("stat-text").innerHTML =
+    `<strong>${nodes.length}</strong> entitas · <strong>${edges.length}</strong> relasi` +
+    (totalObs ? ` · <span style="color:var(--c-accent)">${totalObs} observasi</span>` : "");
+}
 
-    function renderNetwork(nodesList, edgesList) {
-      const container = document.getElementById('graph-container');
+// ─── RENDER DISPATCHER ──────────────────────────────────────────
+function render() {
+  if (mode === "3d") render3d();
+  else render2d();
+  closePanel();
+}
 
-      const visNodes = new vis.DataSet(nodesList.map(n => {
-        const color = typeColors[n.entity_type] || { bg: '#334155', border: '#64748b' };
-        return {
-          id: n.id,
-          label: n.name.length > 25 ? n.name.slice(0, 22) + '...' : n.name,
-          title: `${n.name} (${n.entity_type})`,
-          shape: n.entity_type === 'mahasiswa' ? 'dot' : (n.entity_type === 'dosen' ? 'diamond' : 'dot'),
-          size: n.entity_type === 'mahasiswa' ? 24 : (n.entity_type === 'dosen' ? 26 : 18),
-          color: {
-            background: color.bg,
-            border: color.border,
-            highlight: { background: color.border, border: '#ffffff' }
-          },
-          font: { color: '#f8fafc', face: 'Plus Jakarta Sans', size: 12 },
-          rawNode: n
-        };
-      }));
+// ─── 3D FORCE GRAPH ─────────────────────────────────────────────
+function render3d() {
+  const c3 = document.getElementById("canvas-3d");
+  const c2 = document.getElementById("canvas-2d");
+  c3.style.display = "block";
+  c2.style.display = "none";
+  document.getElementById("hint").textContent = "Orbit: Drag mouse · Zoom: Scroll · Klik Node: Detail & Relasi";
 
-      const visEdges = new vis.DataSet(edgesList.map(e => ({
-        id: e.id,
-        from: e.source_id,
-        to: e.target_id,
-        label: e.relation_type.toLowerCase().replace(/_/g, ' '),
-        arrows: 'to',
-        color: { color: 'rgba(255, 255, 255, 0.25)', highlight: '#38bdf8' },
-        font: { color: '#94a3b8', size: 9, align: 'middle', face: 'JetBrains Mono' },
-        smooth: { type: 'continuous' }
-      })));
+  c3.innerHTML = "";
+  const { nodes, edges } = filtered();
 
-      const options = {
-        physics: {
-          stabilization: false,
-          barnesHut: {
-            gravitationalConstant: -3500,
-            springConstant: 0.04,
-            springLength: 140
-          }
-        },
-        interaction: { hover: true, tooltipDelay: 100 }
-      };
+  const gd = {
+    nodes: nodes.map(n => ({
+      id: String(n.id),
+      label: n.name,
+      entity_type: n.entity_type,
+      canonical_id: n.canonical_id,
+      color: nodeColor(n.entity_type),
+      val: n.entity_type === 'mahasiswa' ? 8 : (n.entity_type === 'dosen' ? 7 : (n.entity_type === 'skripsi' ? 7 : 4)),
+      _raw: n
+    })),
+    links: edges.map(e => ({
+      source: String(e.source_id),
+      target: String(e.target_id),
+      label: e.relation_type.replace(/_/g, ' ')
+    }))
+  };
 
-      if (network) network.destroy();
-      network = new vis.Network(container, { nodes: visNodes, edges: visEdges }, options);
+  graph3 = ForceGraph3D({ controlType: "orbit" })(c3)
+    .graphData(gd)
+    .backgroundColor("#09090b")
+    .nodeLabel(n => `
+      <div style="background:#18181b;border:1px solid #3f3f46;padding:6px 10px;border-radius:6px;font-family:ui-sans-serif,sans-serif;font-size:12px;">
+        <span style="color:${n.color};font-weight:700">${n.label}</span>
+        <span style="color:#71717a;font-size:10px;margin-left:4px">[${n.canonical_id || '-'}]</span><br>
+        <span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;">${n.entity_type}</span>
+      </div>`)
+    .nodeColor(n => n.color)
+    .nodeVal(n => n.val)
+    .nodeResolution(20)
+    .linkWidth(1.2)
+    .linkColor(() => "rgba(63,63,70,0.8)")
+    .linkDirectionalParticles(2)
+    .linkDirectionalParticleWidth(1.8)
+    .linkDirectionalParticleSpeed(0.006)
+    .linkDirectionalParticleColor(() => "#38bdf8")
+    .linkLabel(l => `<span style="background:#18181b;color:#94a3b8;padding:2px 6px;border-radius:3px;font-size:10px">${l.label}</span>`)
+    .onNodeClick(n => {
+      const dist = 90;
+      const mag = Math.hypot(n.x, n.y, n.z) || 1;
+      const r = 1 + dist / mag;
+      graph3.cameraPosition({ x: n.x * r, y: n.y * r, z: n.z * r }, n, 900);
+      openNodeDrawer(n.id);
+    })
+    .onBackgroundClick(closePanel);
 
-      network.on('click', async (params) => {
-        if (params.nodes.length > 0) {
-          const nodeId = params.nodes[0];
-          openNodeDrawer(nodeId);
-        } else {
-          closeDrawer();
-        }
+  // Floating SpriteText Labels
+  if (typeof SpriteText !== "undefined") {
+    graph3.nodeThreeObject(n => {
+      const g = new THREE.Group();
+      const geo = new THREE.SphereGeometry(n.val * 0.7, 14, 14);
+      const mat = new THREE.MeshLambertMaterial({ color: n.color, transparent: true, opacity: .92 });
+      g.add(new THREE.Mesh(geo, mat));
+
+      const sp = new SpriteText(n.label.length > 24 ? n.label.slice(0, 21) + '...' : n.label);
+      sp.color           = "#fafafa";
+      sp.textHeight      = 3.6;
+      sp.backgroundColor = "rgba(9,9,11,.8)";
+      sp.borderColor     = n.color;
+      sp.borderWidth     = 0.5;
+      sp.borderRadius    = 3;
+      sp.padding         = [2, 4];
+      sp.position.y      = n.val * 0.7 + 5;
+      g.add(sp);
+
+      return g;
+    });
+  }
+
+  // Auto-Spin Loop
+  let angle = 0;
+  (function spinLoop() {
+    requestAnimationFrame(spinLoop);
+    if (spinning && mode === "3d" && graph3) {
+      angle += Math.PI / 1800;
+      graph3.cameraPosition({
+        x: 270 * Math.sin(angle),
+        z: 270 * Math.cos(angle)
       });
     }
+  })();
+}
 
-    async function openNodeDrawer(nodeId) {
-      try {
-        const json = await fetchJson(resolveApiUrl(`graph/node/${nodeId}`));
-        if (json.status !== 'success' || !json.data) return;
+// ─── 2D VIS.JS NETWORK ──────────────────────────────────────────
+function render2d() {
+  const c3 = document.getElementById("canvas-3d");
+  const c2 = document.getElementById("canvas-2d");
+  c3.style.display = "none";
+  c2.style.display = "block";
+  document.getElementById("hint").textContent = "Drag: Geser graf · Scroll: Zoom · Klik Node: Detail & Relasi";
 
-        const { node, observations } = json.data;
-        document.getElementById('drawer-name').textContent = node.name;
-        document.getElementById('drawer-canonical').textContent = node.canonical_id || '-';
-        document.getElementById('drawer-props').textContent = JSON.stringify(node.properties || {}, null, 2);
+  c2.innerHTML = "";
+  const { nodes, edges } = filtered();
 
-        const badge = document.getElementById('drawer-badge');
-        badge.textContent = node.entity_type;
-        const color = typeColors[node.entity_type] || { bg: '#334155' };
-        badge.style.background = color.bg;
+  const visNodes = nodes.map(n => {
+    const col = nodeColor(n.entity_type);
+    return {
+      id: String(n.id),
+      label: n.name.length > 25 ? n.name.slice(0, 22) + '...' : n.name,
+      title: `${n.name} (${n.entity_type})\n${n.canonical_id || ''}`,
+      shape: n.entity_type === 'mahasiswa' ? 'dot' : (n.entity_type === 'dosen' ? 'diamond' : 'dot'),
+      size: n.entity_type === 'mahasiswa' ? 22 : (n.entity_type === 'dosen' ? 24 : 14),
+      color: {
+        background: col,
+        border: '#27272a',
+        highlight: { background: col, border: '#ffffff' },
+        hover: { background: col, border: '#38bdf8' }
+      },
+      font: { color: '#f8fafc', size: 11, face: 'Plus Jakarta Sans' },
+      rawNode: n
+    };
+  });
 
-        const obsContainer = document.getElementById('drawer-obs');
-        obsContainer.innerHTML = '';
-        if (observations && observations.length > 0) {
-          observations.forEach(o => {
-            const item = document.createElement('div');
-            item.className = 'obs-item';
-            item.innerHTML = `
-              <div>${o.observation}</div>
-              <div class="obs-meta">[${o.source.toUpperCase()}] • ${new Date(o.created_at).toLocaleString('id-ID')}</div>
-            `;
-            obsContainer.appendChild(item);
-          });
-        } else {
-          obsContainer.innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">Belum ada observasi terdaftar.</div>';
-        }
+  const visEdges = edges.map((e, i) => ({
+    id: e.id || i,
+    from: String(e.source_id),
+    to: String(e.target_id),
+    label: e.relation_type.toLowerCase().replace(/_/g, ' '),
+    arrows: 'to',
+    color: { color: 'rgba(255, 255, 255, 0.25)', highlight: '#38bdf8' },
+    font: { color: '#94a3b8', size: 9, align: 'middle', background: '#111115' },
+    smooth: { type: 'curvedCW', roundness: 0.2 }
+  }));
 
-        document.getElementById('drawer').classList.add('open');
-      } catch (err) {
-        console.error('Failed to open node drawer:', err);
-      }
+  vis2 = new vis.Network(c2, {
+    nodes: new vis.DataSet(visNodes),
+    edges: new vis.DataSet(visEdges)
+  }, {
+    interaction: { hover: true, zoomView: true, tooltipDelay: 100 },
+    physics: {
+      solver: "forceAtlas2Based",
+      forceAtlas2Based: { gravitationalConstant: -60, centralGravity: 0.015, springLength: 120 }
+    }
+  });
+
+  vis2.on("selectNode", p => {
+    if (p.nodes.length) openNodeDrawer(p.nodes[0]);
+  });
+  vis2.on("deselectNode", closePanel);
+}
+
+// ─── INSPECTOR DRAWER ───────────────────────────────────────────
+async function openNodeDrawer(nodeId) {
+  try {
+    const json = await fetchJson(resolveApiUrl(`graph/node/${nodeId}`));
+    if (json.status !== 'success' || !json.data) return;
+
+    const { node, observations, relations } = json.data;
+    const col = nodeColor(node.entity_type);
+    const panel = document.getElementById("panel");
+
+    // Header Tags & Name
+    const tags = document.getElementById("p-tags");
+    tags.innerHTML = `
+      <span class="tag" style="background:${col}26;color:${col};border:1px solid ${col}66">${node.entity_type}</span>
+      <span class="tag tag-canonical">${node.canonical_id || '-'}</span>
+    `;
+    document.getElementById("p-name").textContent = node.name;
+
+    // Attributes / Properties
+    const metaSec  = document.getElementById("p-meta-sec");
+    const metaGrid = document.getElementById("p-meta");
+    metaGrid.innerHTML = "";
+    const props = node.properties || {};
+    const entries = Object.entries(props);
+    if (entries.length > 0) {
+      metaSec.style.display = "";
+      entries.forEach(([k, v]) => {
+        const valStr = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        metaGrid.insertAdjacentHTML("beforeend", `
+          <div class="meta-cell">
+            <div class="meta-key">${k}</div>
+            <div class="meta-val">${valStr}</div>
+          </div>
+        `);
+      });
+    } else {
+      metaSec.style.display = "none";
     }
 
-    function closeDrawer() {
-      document.getElementById('drawer').classList.remove('open');
-    }
+    // Observations
+    const obsList = observations || [];
+    document.getElementById("p-obs-count").textContent = obsList.length;
+    const obsEl = document.getElementById("p-obs");
+    obsEl.innerHTML = obsList.length
+      ? obsList.map(o => `
+          <div class="obs-item" style="border-left-color:${col}">
+            <div>${escHtml(o.observation)}</div>
+            <div class="obs-meta">[${o.source.toUpperCase()}] • ${new Date(o.created_at).toLocaleString('id-ID')}</div>
+          </div>
+        `).join("")
+      : `<p class="empty">Belum ada observasi akademik tercatat.</p>`;
 
-    async function syncGraph(event) {
-      const btn = (event && event.target) || document.getElementById('btn-sync');
-      if (btn) btn.textContent = '⏳ Menyinkronkan...';
-      try {
-        const json = await fetchJson(resolveApiUrl('graph/sync/all'), { method: 'POST' });
-        alert(json.message || 'Sinkronisasi selesai!');
-        loadGraphData();
-      } catch (err) {
-        alert('Gagal menyinkronkan: ' + err.message);
-      } finally {
-        if (btn) btn.textContent = '⚡ Auto-Sync Data';
-      }
-    }
+    // Relations
+    const relList = relations || [];
+    document.getElementById("p-rel-count").textContent = relList.length;
+    const relEl = document.getElementById("p-rel");
+    relEl.innerHTML = relList.length
+      ? relList.map(r => {
+          const out = String(r.source_id) === String(node.id);
+          const otherId = out ? r.target_id : r.source_id;
+          const otherName = out ? r.target_name : r.source_name;
+          return `
+            <div class="rel-item" data-node-id="${otherId}">
+              <div>
+                <span class="rel-type">${r.relation_type.replace(/_/g, ' ')}</span>
+                <span class="rel-dir">${out ? "→ out" : "← in"}</span>
+              </div>
+              <div class="rel-target">${escHtml(otherName)}</div>
+            </div>
+          `;
+        }).join("")
+      : `<p class="empty">Tidak ada relasi aktif.</p>`;
 
-    document.getElementById('type-filter').addEventListener('change', (e) => {
-      loadGraphData(e.target.value);
+    // Click relation → jump to node
+    relEl.querySelectorAll(".rel-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const targetId = item.dataset.nodeId;
+        focusNode(targetId);
+        openNodeDrawer(targetId);
+      });
     });
 
-    document.getElementById('search-input').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      if (!query || !network) return;
-      const allNodes = network.body.data.nodes.get();
-      const match = allNodes.find(n => n.label.toLowerCase().includes(query) || (n.rawNode?.canonical_id || '').toLowerCase().includes(query));
-      if (match) {
-        network.focus(match.id, { scale: 1.2, animation: true });
-        network.selectNodes([match.id]);
-        openNodeDrawer(match.id);
-      }
-    });
+    panel.classList.add("open");
+  } catch (err) {
+    console.error('Gagal membuka inspector node:', err);
+  }
+}
 
-    // Initial load
-    loadGraphData();
-  </script>
+function focusNode(nodeId) {
+  if (mode === "3d" && graph3) {
+    const n3 = graph3.graphData().nodes.find(n => String(n.id) === String(nodeId));
+    if (n3) {
+      const mag = Math.hypot(n3.x, n3.y, n3.z) || 1;
+      const r = 1 + 90 / mag;
+      graph3.cameraPosition({ x: n3.x * r, y: n3.y * r, z: n3.z * r }, n3, 900);
+    }
+  } else if (mode === "2d" && vis2) {
+    vis2.selectNodes([String(nodeId)]);
+    vis2.focus(String(nodeId), { scale: 1.3, animation: { duration: 600, easingFunction: "easeInOutQuad" } });
+  }
+}
+
+function closePanel() {
+  document.getElementById("panel").classList.remove("open");
+}
+
+function escHtml(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// ─── AUTO-SYNC DATA ─────────────────────────────────────────────
+async function syncGraph(event) {
+  const btn = (event && event.target) || document.getElementById('btn-sync');
+  if (btn) btn.textContent = '⏳ Menyinkronkan...';
+  try {
+    const json = await fetchJson(resolveApiUrl('graph/sync/all'), { method: 'POST' });
+    alert(json.message || 'Sinkronisasi berhasil!');
+    await loadGraphData();
+  } catch (err) {
+    alert('Gagal menyinkronkan: ' + err.message);
+  } finally {
+    if (btn) btn.textContent = '⚡ Auto-Sync';
+  }
+}
+
+// ─── CONTROLS EVENT LISTENERS ───────────────────────────────────
+// Mode 3D / 2D
+document.getElementById("btn-3d").addEventListener("click", () => {
+  mode = "3d";
+  document.getElementById("btn-3d").classList.add("active");
+  document.getElementById("btn-2d").classList.remove("active");
+  document.getElementById("btn-spin").style.display = "";
+  render();
+});
+document.getElementById("btn-2d").addEventListener("click", () => {
+  mode = "2d";
+  document.getElementById("btn-2d").classList.add("active");
+  document.getElementById("btn-3d").classList.remove("active");
+  document.getElementById("btn-spin").style.display = "none";
+  render();
+});
+
+// Spin
+document.getElementById("btn-spin").addEventListener("click", function() {
+  spinning = !spinning;
+  this.classList.toggle("active-spin", spinning);
+  this.querySelector("svg").style.opacity = spinning ? "1" : ".35";
+});
+
+// Center
+document.getElementById("btn-center").addEventListener("click", () => {
+  if (mode === "3d" && graph3) graph3.cameraPosition({ x: 0, y: 0, z: 280 }, { x: 0, y: 0, z: 0 }, 800);
+  if (mode === "2d" && vis2) vis2.fit({ animation: { duration: 600 } });
+});
+
+// Reload & Close
+document.getElementById("btn-reload").addEventListener("click", loadGraphData);
+document.getElementById("btn-close").addEventListener("click", closePanel);
+
+// Live Search
+document.getElementById("search").addEventListener("input", e => {
+  searchQ = e.target.value.trim();
+  render();
+});
+
+// Shortcut '/' & Escape
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && document.activeElement !== document.getElementById("search")) {
+    e.preventDefault();
+    document.getElementById("search").focus();
+  }
+  if (e.key === "Escape") closePanel();
+});
+
+// Filter Pills
+document.querySelectorAll("#type-pills .pill").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#type-pills .pill").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    typeF = btn.dataset.type;
+    render();
+  });
+});
+
+// Initial Load
+loadGraphData();
+</script>
 </body>
 </html>
