@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acaris Memory Graph — 3D & Relational Knowledge Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent: #818cf8;
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Toolbar */
+    header {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-box {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-family: var(--font);
+      outline: none;
+      width: 220px;
+      transition: all 0.2s ease;
+    }
+    .search-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+      width: 260px;
+    }
+
+    .select-filter {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* Stats Pill */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .stat-item {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .stat-item strong {
+      color: var(--primary);
+      font-family: var(--mono);
+    }
+
+    /* Canvas Area */
+    #graph-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+    }
+
+    /* Legend Overlay */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      z-index: 10;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .legend-title {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Inspector Drawer */
+    #drawer {
+      position: absolute;
+      top: 70px;
+      right: 20px;
+      bottom: 20px;
+      width: 380px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(420px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #drawer.open {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .drawer-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .prop-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .obs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .obs-item {
+      background: rgba(15, 23, 42, 0.5);
+      border-left: 3px solid var(--primary);
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .obs-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">💙</div>
+      <div>
+        <div class="brand-title">Acaris Memory Graph</div>
+        <div class="brand-sub">Hierarchical Knowledge & Bimbingan Network</div>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">Nodes: <strong id="stat-nodes">0</strong></div>
+      <div class="stat-item">Relations: <strong id="stat-edges">0</strong></div>
+      <div class="stat-item">Observations: <strong id="stat-obs">0</strong></div>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="search-input" class="search-box" placeholder="Cari nama / NPM / judul...">
+      <select id="type-filter" class="select-filter">
+        <option value="">Semua Entitas</option>
+        <option value="mahasiswa">Mahasiswa</option>
+        <option value="dosen">Dosen</option>
+        <option value="skripsi">Skripsi</option>
+        <option value="bab">Bab Skripsi</option>
+        <option value="revisi">Catatan / Revisi</option>
+        <option value="konsentrasi">Konsentrasi</option>
+      </select>
+      <button class="btn" onclick="syncGraph()">⚡ Auto-Sync Data</button>
+    </div>
+  </header>
+
+  <div id="graph-container"></div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-title">Tipe Entitas</div>
+    <div class="legend-item"><div class="dot" style="background: #38bdf8;"></div> Mahasiswa</div>
+    <div class="legend-item"><div class="dot" style="background: #818cf8;"></div> Dosen Pembimbing</div>
+    <div class="legend-item"><div class="dot" style="background: #fb923c;"></div> Skripsi / Penelitian</div>
+    <div class="legend-item"><div class="dot" style="background: #34d399;"></div> Bab Skripsi</div>
+    <div class="legend-item"><div class="dot" style="background: #f87171;"></div> Catatan & Revisi</div>
+    <div class="legend-item"><div class="dot" style="background: #c084fc;"></div> Konsentrasi & Topik</div>
+  </div>
+
+  <!-- Inspector Drawer -->
+  <div id="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawer-name">Detail Node</div>
+      <button class="close-btn" onclick="closeDrawer()">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div>
+        <span class="badge" id="drawer-badge" style="background: #0369a1; color: white;">Mahasiswa</span>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Canonical ID:</div>
+        <div id="drawer-canonical" style="font-family: var(--mono); font-size: 12px; color: var(--primary);"></div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Properties:</div>
+        <pre class="prop-box" id="drawer-props">{}</pre>
+      </div>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">Riwayat Observasi & Bimbingan:</div>
+        <div class="obs-list" id="drawer-obs"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let network = null;
+    let graphData = { nodes: [], edges: [] };
+
+    const typeColors = {
+      mahasiswa: { bg: '#0284c7', border: '#38bdf8' },
+      dosen: { bg: '#4f46e5', border: '#818cf8' },
+      skripsi: { bg: '#ea580c', border: '#fb923c' },
+      bab: { bg: '#059669', border: '#34d399' },
+      revisi: { bg: '#dc2626', border: '#f87171' },
+      catatan_akademik: { bg: '#d97706', border: '#fbbf24' },
+      konsentrasi: { bg: '#9333ea', border: '#c084fc' },
+      konsep: { bg: '#475569', border: '#94a3b8' }
+    };
+
+    async function loadGraphData(type = '', search = '') {
+      try {
+        let url = '/chatbot/graph?limit=400';
+        if (type) url += `&type=${encodeURIComponent(type)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.status !== 'success' || !json.data) return;
+
+        const data = json.data;
+        document.getElementById('stat-nodes').textContent = data.statistics?.total_nodes || data.nodes.length;
+        document.getElementById('stat-edges').textContent = data.statistics?.total_edges || data.edges.length;
+        document.getElementById('stat-obs').textContent = data.statistics?.total_observations || 0;
+
+        renderNetwork(data.nodes, data.edges);
+      } catch (err) {
+        console.error('Failed to load graph data:', err);
+      }
+    }
+
+    function renderNetwork(nodesList, edgesList) {
+      const container = document.getElementById('graph-container');
+
+      const visNodes = new vis.DataSet(nodesList.map(n => {
+        const color = typeColors[n.entity_type] || { bg: '#334155', border: '#64748b' };
+        return {
+          id: n.id,
+          label: n.name.length > 25 ? n.name.slice(0, 22) + '...' : n.name,
+          title: `${n.name} (${n.entity_type})`,
+          shape: n.entity_type === 'mahasiswa' ? 'dot' : (n.entity_type === 'dosen' ? 'diamond' : 'dot'),
+          size: n.entity_type === 'mahasiswa' ? 24 : (n.entity_type === 'dosen' ? 26 : 18),
+          color: {
+            background: color.bg,
+            border: color.border,
+            highlight: { background: color.border, border: '#ffffff' }
+          },
+          font: { color: '#f8fafc', face: 'Plus Jakarta Sans', size: 12 },
+          rawNode: n
+        };
+      }));
+
+      const visEdges = new vis.DataSet(edgesList.map(e => ({
+        id: e.id,
+        from: e.source_id,
+        to: e.target_id,
+        label: e.relation_type.toLowerCase().replace(/_/g, ' '),
+        arrows: 'to',
+        color: { color: 'rgba(255, 255, 255, 0.25)', highlight: '#38bdf8' },
+        font: { color: '#94a3b8', size: 9, align: 'middle', face: 'JetBrains Mono' },
+        smooth: { type: 'continuous' }
+      })));
+
+      const options = {
+        physics: {
+          stabilization: false,
+          barnesHut: {
+            gravitationalConstant: -3500,
+            springConstant: 0.04,
+            springLength: 140
+          }
+        },
+        interaction: { hover: true, tooltipDelay: 100 }
+      };
+
+      if (network) network.destroy();
+      network = new vis.Network(container, { nodes: visNodes, edges: visEdges }, options);
+
+      network.on('click', async (params) => {
+        if (params.nodes.length > 0) {
+          const nodeId = params.nodes[0];
+          openNodeDrawer(nodeId);
+        } else {
+          closeDrawer();
+        }
+      });
+    }
+
+    async function openNodeDrawer(nodeId) {
+      try {
+        const res = await fetch(`/chatbot/graph/node/${nodeId}`);
+        const json = await res.json();
+        if (json.status !== 'success' || !json.data) return;
+
+        const { node, observations } = json.data;
+        document.getElementById('drawer-name').textContent = node.name;
+        document.getElementById('drawer-canonical').textContent = node.canonical_id || '-';
+        document.getElementById('drawer-props').textContent = JSON.stringify(node.properties || {}, null, 2);
+
+        const badge = document.getElementById('drawer-badge');
+        badge.textContent = node.entity_type;
+        const color = typeColors[node.entity_type] || { bg: '#334155' };
+        badge.style.background = color.bg;
+
+        const obsContainer = document.getElementById('drawer-obs');
+        obsContainer.innerHTML = '';
+        if (observations && observations.length > 0) {
+          observations.forEach(o => {
+            const item = document.createElement('div');
+            item.className = 'obs-item';
+            item.innerHTML = `
+              <div>${o.observation}</div>
+              <div class="obs-meta">[${o.source.toUpperCase()}] • ${new Date(o.created_at).toLocaleString('id-ID')}</div>
+            `;
+            obsContainer.appendChild(item);
+          });
+        } else {
+          obsContainer.innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">Belum ada observasi terdaftar.</div>';
+        }
+
+        document.getElementById('drawer').classList.add('open');
+      } catch (err) {
+        console.error('Failed to open node drawer:', err);
+      }
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+    }
+
+    async function syncGraph() {
+      const btn = event.target;
+      btn.textContent = '⏳ Menyinkronkan...';
+      try {
+        const res = await fetch('/chatbot/graph/sync/all', { method: 'POST' });
+        const json = await res.json();
+        alert(json.message || 'Sinkronisasi selesai!');
+        loadGraphData();
+      } catch (err) {
+        alert('Gagal menyinkronkan: ' + err.message);
+      } finally {
+        btn.textContent = '⚡ Auto-Sync Data';
+      }
+    }
+
+    document.getElementById('type-filter').addEventListener('change', (e) => {
+      loadGraphData(e.target.value);
+    });
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      if (!query || !network) return;
+      const allNodes = network.body.data.nodes.get();
+      const match = allNodes.find(n => n.label.toLowerCase().includes(query) || (n.rawNode?.canonical_id || '').toLowerCase().includes(query));
+      if (match) {
+        network.focus(match.id, { scale: 1.2, animation: true });
+        network.selectNodes([match.id]);
+        openNodeDrawer(match.id);
+      }
+    });
+
+    // Initial load
+    loadGraphData();
+  </script>
+</body>
+</html>

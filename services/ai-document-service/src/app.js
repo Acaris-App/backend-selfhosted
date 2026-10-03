@@ -58,11 +58,13 @@ app.get('/health', (req, res) => {
 // ================= ROUTES =================
 const documentRoutes = require('./routes/document.routes');
 const chatbotRoutes = require('./routes/chatbot.routes');
+const graphRoutes = require('./routes/graph.routes');
 const adminRoutes = require('./routes/admin.routes');
 const academicRoutes = require('./routes/academic.routes');
 
 app.use('/document', documentRoutes);
 app.use('/chatbot', chatbotRoutes);
+app.use('/graph', graphRoutes);
 app.use('/api/chat-bot', chatbotRoutes);
 app.use('/admin', adminRoutes);
 app.use('/academic', academicRoutes);

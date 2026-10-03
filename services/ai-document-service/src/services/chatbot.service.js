@@ -1,5 +1,6 @@
 const userRepository = require('../repositories/user.repository');
 const chatbotRepository = require('../repositories/chatbot.repository');
+const graphService = require('./graph.service');
 
 const CHATBOT_TIMEOUT_MS = parseInt(process.env.N8N_CHATBOT_TIMEOUT_MS, 10) || 60000;
 
@@ -294,6 +295,15 @@ exports.sendMessage = async ({ user, body }) => {
   });
 
   const messages = await chatbotRepository.getMessagesBySession(session.id);
+  
+  // Ambil konteks relasional dari Memory Graph mahasiswa jika tersedia
+  let graphContext = '';
+  try {
+    graphContext = await graphService.getEnrichedStudentContext(currentUser.npm_nip);
+  } catch (err) {
+    console.warn('[GraphContext] Gagal mengambil konteks graf:', err.message);
+  }
+
   const payload = {
     action: 'chat',
     session_id: session.id,
@@ -301,6 +311,7 @@ exports.sendMessage = async ({ user, body }) => {
     pesan_user: message,
     chatInput: message,
     message,
+    graph_context: graphContext,
     messages: messages.map((item) => ({
       id: item.id,
       sender: item.sender,
@@ -317,6 +328,14 @@ exports.sendMessage = async ({ user, body }) => {
     sender: 'bot',
     text: replyText
   });
+
+  // Rekam observasi interaksi ke Memory Graph secara asinkron
+  graphService.recordChatObservation({
+    npm: currentUser.npm_nip,
+    message,
+    reply: replyText,
+    sessionId: session.id
+  }).catch(e => console.warn('[GraphObs] Gagal mencatat observasi percakapan:', e.message));
 
   return {
     session_id: session.id,
@@ -466,6 +485,15 @@ exports.streamMessage = async ({ user, body, res }) => {
   });
 
   const messages = await chatbotRepository.getMessagesBySession(session.id);
+  
+  // Ambil konteks relasional dari Memory Graph mahasiswa jika tersedia
+  let graphContext = '';
+  try {
+    graphContext = await graphService.getEnrichedStudentContext(currentUser.npm_nip);
+  } catch (err) {
+    console.warn('[GraphContext] Gagal mengambil konteks graf:', err.message);
+  }
+
   const payload = {
     action: 'chat',
     session_id: session.id,
@@ -473,6 +501,7 @@ exports.streamMessage = async ({ user, body, res }) => {
     pesan_user: message,
     chatInput: message,
     message,
+    graph_context: graphContext,
     messages: messages.map((item) => ({
       id: item.id,
       sender: item.sender,
@@ -497,6 +526,14 @@ exports.streamMessage = async ({ user, body, res }) => {
       sender: 'bot',
       text: replyText
     });
+
+    // Rekam observasi interaksi ke Memory Graph secara asinkron
+    graphService.recordChatObservation({
+      npm: currentUser.npm_nip,
+      message,
+      reply: replyText,
+      sessionId: session.id
+    }).catch(e => console.warn('[GraphObs] Gagal mencatat observasi percakapan:', e.message));
 
     if (!res.writableEnded && !res.closed) {
       res.write(`data: ${JSON.stringify({ type: 'done', session_id: session.id, reply_text: replyText })}\n\n`);
