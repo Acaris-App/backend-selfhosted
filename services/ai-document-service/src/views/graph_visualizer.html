@@ -304,7 +304,7 @@
         <option value="revisi">Catatan / Revisi</option>
         <option value="konsentrasi">Konsentrasi</option>
       </select>
-      <button class="btn" onclick="syncGraph()">⚡ Auto-Sync Data</button>
+      <button id="btn-sync" class="btn" onclick="syncGraph(event)">⚡ Auto-Sync Data</button>
     </div>
   </header>
 
@@ -361,12 +361,39 @@
       konsep: { bg: '#475569', border: '#94a3b8' }
     };
 
+    // Deteksi cerdas Base API URL agar kompatibel diakses via:
+    // 1) https://acaris.my.id/api/chatbot/graph/visualizer (Apache reverse proxy)
+    // 2) http://localhost:8003/chatbot/graph/visualizer (akses langsung port container)
+    // 3) https://acaris.my.id/graph/visualizer (direct path)
+    function resolveApiUrl(subpath) {
+      const clean = subpath.replace(/^\/+/, '');
+      const currentPath = window.location.pathname;
+      if (currentPath.includes('/api/chatbot/')) {
+        return `/api/chatbot/${clean}`;
+      } else if (currentPath.includes('/chatbot/')) {
+        return `/chatbot/${clean}`;
+      } else if (currentPath.includes('/graph/')) {
+        return `/graph/${clean}`;
+      }
+      return `/api/chatbot/${clean}`;
+    }
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, options);
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const text = await res.text();
+        const cleanPreview = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
+        throw new Error(`Server merespon ${res.status} ${res.statusText} (bukan JSON): "${cleanPreview}..."`);
+      }
+      return await res.json();
+    }
+
     async function loadGraphData(type = '', search = '') {
       try {
-        let url = '/chatbot/graph?limit=400';
+        let url = resolveApiUrl('graph?limit=400');
         if (type) url += `&type=${encodeURIComponent(type)}`;
-        const res = await fetch(url);
-        const json = await res.json();
+        const json = await fetchJson(url);
         if (json.status !== 'success' || !json.data) return;
 
         const data = json.data;
@@ -439,8 +466,7 @@
 
     async function openNodeDrawer(nodeId) {
       try {
-        const res = await fetch(`/chatbot/graph/node/${nodeId}`);
-        const json = await res.json();
+        const json = await fetchJson(resolveApiUrl(`graph/node/${nodeId}`));
         if (json.status !== 'success' || !json.data) return;
 
         const { node, observations } = json.data;
@@ -479,18 +505,17 @@
       document.getElementById('drawer').classList.remove('open');
     }
 
-    async function syncGraph() {
-      const btn = event.target;
-      btn.textContent = '⏳ Menyinkronkan...';
+    async function syncGraph(event) {
+      const btn = (event && event.target) || document.getElementById('btn-sync');
+      if (btn) btn.textContent = '⏳ Menyinkronkan...';
       try {
-        const res = await fetch('/chatbot/graph/sync/all', { method: 'POST' });
-        const json = await res.json();
+        const json = await fetchJson(resolveApiUrl('graph/sync/all'), { method: 'POST' });
         alert(json.message || 'Sinkronisasi selesai!');
         loadGraphData();
       } catch (err) {
         alert('Gagal menyinkronkan: ' + err.message);
       } finally {
-        btn.textContent = '⚡ Auto-Sync Data';
+        if (btn) btn.textContent = '⚡ Auto-Sync Data';
       }
     }
 

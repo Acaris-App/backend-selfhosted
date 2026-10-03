@@ -133,4 +133,5 @@ src.zip
 .env.production
 gcs-key.json
 .dockerignore
+dokument mahasiswa/
 
