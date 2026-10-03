@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acaris Memory Graph · 3D & 2D Knowledge Visualizer</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,17 +47,19 @@
 
     html, body {
       height: 100%;
+      width: 100%;
       overflow: hidden;
       background: var(--c-bg);
       color: var(--c-text);
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      touch-action: manipulation;
     }
 
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--c-border2); border-radius: 99px; }
 
-    #root { display: flex; flex-direction: column; height: 100%; }
+    #root { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; }
 
     /* ─── HEADER ───────────────────── */
     header {
@@ -66,8 +68,8 @@
       border-bottom: 1px solid var(--c-border);
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 0 16px;
+      gap: 10px;
+      padding: 0 14px;
       background: var(--c-surface);
       position: relative;
       z-index: 20;
@@ -82,7 +84,7 @@
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
     }
 
     .logo-badge {
@@ -97,15 +99,18 @@
       color: #09090b;
       font-weight: 800;
       font-size: 11px;
+      flex-shrink: 0;
     }
 
-    .divider { width: 1px; height: 22px; background: var(--c-border); flex-shrink: 0; }
+    .divider { width: 1px; height: 20px; background: var(--c-border); flex-shrink: 0; }
 
     /* Search */
     .search-wrap {
       position: relative;
       display: flex;
       align-items: center;
+      flex: 1;
+      max-width: 260px;
     }
     .search-wrap svg {
       position: absolute;
@@ -121,22 +126,23 @@
       font-size: 12px;
       font-family: inherit;
       height: 32px;
-      padding: 0 10px 0 32px;
-      width: 200px;
-      transition: border-color .15s, width .2s;
+      padding: 0 10px 0 30px;
+      width: 100%;
+      transition: border-color .15s;
       outline: none;
     }
     #search::placeholder { color: var(--c-text3); }
-    #search:focus { border-color: var(--c-accent); width: 250px; }
+    #search:focus { border-color: var(--c-accent); }
 
     /* Pill Groups */
     .pill-group {
       display: flex;
-      gap: 3px;
-      padding: 3px;
+      gap: 2px;
+      padding: 2px;
       border: 1px solid var(--c-border);
       border-radius: var(--radius);
       background: var(--c-bg);
+      flex-shrink: 0;
     }
     .pill {
       border: none;
@@ -144,7 +150,7 @@
       color: var(--c-text3);
       font-size: 11px;
       font-weight: 600;
-      padding: 4px 10px;
+      padding: 4px 9px;
       border-radius: 5px;
       cursor: pointer;
       transition: background .12s, color .12s;
@@ -167,15 +173,16 @@
       font-size: 11px;
       font-weight: 600;
       height: 32px;
-      padding: 0 12px;
+      padding: 0 10px;
       border-radius: var(--radius);
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: border-color .12s, color .12s, background .12s;
       white-space: nowrap;
       font-family: inherit;
+      flex-shrink: 0;
     }
     .btn:hover { border-color: var(--c-border2); color: var(--c-text); background: var(--c-surface); }
     .btn.active-spin { border-color: var(--c-accent); color: var(--c-accent); }
@@ -192,6 +199,21 @@
     .stat { font-size: 11px; color: var(--c-text3); white-space: nowrap; }
     .stat strong { color: var(--c-text2); font-weight: 700; }
 
+    /* ─── MOBILE FILTER TOOLBAR ────── */
+    #mobile-bar {
+      display: none;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-border);
+      z-index: 19;
+      flex-shrink: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    #mobile-bar::-webkit-scrollbar { display: none; }
+
     /* ─── CANVAS AREA ──────────────── */
     #canvas-wrap {
       flex: 1;
@@ -199,6 +221,7 @@
       overflow: hidden;
       min-height: 0;
       background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+      touch-action: none;
     }
 
     #canvas-3d { width: 100%; height: 100%; position: absolute; inset: 0; }
@@ -206,15 +229,15 @@
 
     #hint {
       position: absolute;
-      top: 14px;
-      left: 16px;
+      top: 12px;
+      left: 14px;
       font-size: 10px;
       color: var(--c-text3);
       pointer-events: none;
       z-index: 5;
-      background: rgba(17, 17, 21, 0.8);
+      background: rgba(17, 17, 21, 0.85);
       backdrop-filter: blur(8px);
-      padding: 5px 10px;
+      padding: 4px 8px;
       border-radius: 6px;
       border: 1px solid var(--c-border);
       letter-spacing: .02em;
@@ -223,17 +246,18 @@
     /* ─── LEGEND ────────────────────── */
     #legend {
       position: absolute;
-      bottom: 16px;
-      left: 16px;
+      bottom: 14px;
+      left: 14px;
       border: 1px solid var(--c-border);
-      background: rgba(17, 17, 21, 0.85);
+      background: rgba(17, 17, 21, 0.88);
       backdrop-filter: blur(12px);
       border-radius: var(--radius);
-      padding: 10px 14px;
+      padding: 9px 12px;
       z-index: 10;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
+      transition: opacity .2s, transform .2s;
     }
 
     .legend-label {
@@ -243,25 +267,61 @@
       color: var(--c-text3);
       font-weight: 700;
       margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .legend-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4px 14px;
+      gap: 4px 12px;
     }
 
-    .legend-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--c-text2); }
+    .legend-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--c-text2); }
     .lc { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-    /* ─── DETAIL PANEL ──────────────── */
+    /* Floating Legend Button for Mobile */
+    #btn-legend-mob {
+      display: none;
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      z-index: 12;
+      background: rgba(17, 17, 21, 0.9);
+      border: 1px solid var(--c-border2);
+      color: var(--c-text2);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+
+    /* ─── DETAIL PANEL (INSPECTOR / BOTTOM SHEET) ── */
+    #panel-backdrop {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 25;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+    #panel-backdrop.open {
+      display: block;
+      opacity: 1;
+    }
+
     #panel {
       position: absolute;
       top: 14px;
       right: 14px;
       bottom: 14px;
       width: var(--panel-w);
-      background: rgba(17, 17, 21, 0.92);
+      background: rgba(17, 17, 21, 0.94);
       backdrop-filter: blur(20px);
       border: 1px solid var(--c-border);
       border-radius: 12px;
@@ -271,12 +331,22 @@
       transition: transform .28s cubic-bezier(.16,1,.3,1);
       z-index: 30;
       overflow: hidden;
-      box-shadow: -10px 0 35px rgba(0,0,0,0.5);
+      box-shadow: -10px 0 35px rgba(0,0,0,0.6);
     }
     #panel.open { transform: translateX(0); }
 
+    .drag-handle {
+      display: none;
+      width: 40px;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--c-border2);
+      margin: 8px auto 2px;
+      flex-shrink: 0;
+    }
+
     .panel-head {
-      padding: 16px 16px 14px;
+      padding: 14px 16px 12px;
       border-bottom: 1px solid var(--c-border);
       display: flex;
       justify-content: space-between;
@@ -305,11 +375,11 @@
     }
 
     .panel-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--c-text);
       line-height: 1.3;
-      margin-top: 6px;
+      margin-top: 5px;
     }
 
     .close-btn {
@@ -317,7 +387,7 @@
       border: none;
       color: var(--c-text3);
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       line-height: 1;
       padding: 2px 6px;
       border-radius: 4px;
@@ -332,8 +402,9 @@
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       min-height: 0;
+      -webkit-overflow-scrolling: touch;
     }
 
     .section-head {
@@ -342,7 +413,7 @@
       text-transform: uppercase;
       letter-spacing: .06em;
       color: var(--c-text3);
-      margin-bottom: 8px;
+      margin-bottom: 7px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -356,7 +427,7 @@
       border-radius: 6px;
       padding: 7px 10px;
     }
-    .meta-key { font-size: 10px; color: var(--c-text3); margin-bottom: 2px; text-transform: uppercase; font-weight: 600; }
+    .meta-key { font-size: 9px; color: var(--c-text3); margin-bottom: 2px; text-transform: uppercase; font-weight: 600; }
     .meta-val { font-size: 11px; color: var(--c-text); font-weight: 600; word-break: break-all; font-family: 'JetBrains Mono', monospace; }
 
     /* Observations */
@@ -365,16 +436,16 @@
       border: 1px solid var(--c-border);
       border-left: 3px solid var(--c-accent);
       border-radius: 6px;
-      padding: 9px 12px;
+      padding: 8px 11px;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.45;
       color: var(--c-text2);
       margin-bottom: 6px;
     }
     .obs-meta {
       font-size: 10px;
       color: var(--c-text3);
-      margin-top: 5px;
+      margin-top: 4px;
       font-family: 'JetBrains Mono', monospace;
     }
 
@@ -385,14 +456,14 @@
       justify-content: space-between;
       border: 1px solid var(--c-border);
       border-radius: 6px;
-      padding: 8px 11px;
+      padding: 8px 10px;
       cursor: pointer;
       font-size: 11px;
       transition: border-color .12s, background .12s, transform .1s;
       margin-bottom: 5px;
       background: var(--c-bg);
     }
-    .rel-item:hover {
+    .rel-item:hover, .rel-item:active {
       border-color: var(--c-accent);
       background: rgba(56, 189, 248, 0.08);
       transform: translateX(2px);
@@ -403,36 +474,90 @@
 
     .empty { font-size: 11px; color: var(--c-text3); }
 
-    /* Mobile */
-    @media (max-width: 900px) {
-      .header-filters { display: none; }
-      #search { width: 140px; }
-      #search:focus { width: 170px; }
-    }
-    @media (max-width: 600px) {
-      #legend { display: none; }
-      #panel {
-        top: auto; right: 0; bottom: 0; left: 0;
-        width: 100%; border-radius: 16px 16px 0 0;
-        max-height: 65vh;
-        transform: translateY(110%);
+    /* ─── FULL MOBILE RESPONSIVE (BREAKPOINT <= 860px) ───── */
+    @media (max-width: 860px) {
+      :root {
+        --header-h: 50px;
+        --panel-w: 100%;
       }
-      #panel.open { transform: translateY(0); }
+
+      /* Top Header: Keep essential search & mode switch */
+      .header-filters,
+      .header-right .divider,
+      .header-right .stat,
+      .header-right #btn-spin,
+      .header-right #btn-center,
+      .header-right #btn-reload,
+      .header-right #btn-sync {
+        display: none !important;
+      }
+
+      header {
+        padding: 0 10px;
+        gap: 8px;
+      }
+
+      .logo-title-text { display: none; }
+      .search-wrap { max-width: none; }
+
+      /* Sub Header / Mobile Scrollbar */
+      #mobile-bar {
+        display: flex;
+        align-items: center;
+      }
+
+      /* Inspector Panel transforms to Bottom Sheet Drawer */
+      #panel {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 18px 18px 0 0;
+        max-height: 70vh;
+        transform: translateY(110%);
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+      }
+      #panel.open {
+        transform: translateY(0);
+      }
+
+      .drag-handle { display: block; }
+
+      /* Legend toggle */
+      #legend {
+        display: none;
+        bottom: 50px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+      }
+      #legend.mobile-open {
+        display: flex;
+      }
+      #btn-legend-mob { display: block; }
+
+      #hint {
+        top: 8px;
+        left: 10px;
+        font-size: 9px;
+        padding: 3px 6px;
+      }
     }
   </style>
 </head>
 <body>
 <div id="root">
 
-  <!-- ─── HEADER ─────────────────────────────────────────────── -->
+  <!-- ─── TOP HEADER ─────────────────────────────────────────── -->
   <header>
     <div class="logo">
       <div class="logo-badge">A</div>
-      Acaris Graph
+      <span class="logo-title-text">Acaris Graph</span>
     </div>
     <div class="divider"></div>
 
-    <!-- Search -->
+    <!-- Search Box -->
     <div class="search-wrap">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -440,7 +565,7 @@
       <input id="search" type="text" placeholder="Cari entitas, NPM, Dosen... ( / )" autocomplete="off" spellcheck="false">
     </div>
 
-    <!-- Entity Type Filter Pills (Desktop) -->
+    <!-- Desktop Entity Filters -->
     <div class="header-filters">
       <div class="pill-group" id="type-pills">
         <button class="pill active" data-type="all">Semua</button>
@@ -464,7 +589,7 @@
         <button class="pill" id="btn-2d">2D</button>
       </div>
 
-      <!-- Spin Toggle in 3D -->
+      <!-- Action Buttons -->
       <button class="btn active-spin" id="btn-spin" title="Auto Orbit Camera">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         Spin
@@ -476,35 +601,60 @@
     </div>
   </header>
 
+  <!-- ─── MOBILE FILTER & ACTION TOOLBAR (VISIBLE <= 860px) ───── -->
+  <div id="mobile-bar">
+    <button class="pill active" data-type="all">Semua</button>
+    <button class="pill" data-type="mahasiswa">Mahasiswa</button>
+    <button class="pill" data-type="dosen">Dosen</button>
+    <button class="pill" data-type="skripsi">Skripsi</button>
+    <button class="pill" data-type="bab">Bab</button>
+    <button class="pill" data-type="revisi">Revisi</button>
+    <button class="pill" data-type="konsep">Dokumen</button>
+    <div style="width:1px;height:18px;background:var(--c-border);flex-shrink:0;margin:0 4px;"></div>
+    <button class="btn" id="btn-mob-spin" style="height:26px;padding:0 8px;font-size:10px;">Spin</button>
+    <button class="btn" id="btn-mob-center" style="height:26px;padding:0 8px;font-size:10px;">Center</button>
+    <button class="btn btn-primary" id="btn-mob-sync" onclick="syncGraph(event)" style="height:26px;padding:0 8px;font-size:10px;">⚡ Sync</button>
+  </div>
+
   <!-- ─── CANVAS AREA ─────────────────────────────────────────── -->
   <div id="canvas-wrap">
     <div id="canvas-3d"></div>
     <div id="canvas-2d"></div>
 
-    <div id="hint">Orbit: Drag mouse · Zoom: Scroll · Klik Node: Detail & Relasi</div>
+    <div id="hint">Orbit: Drag · Zoom: Pinch/Scroll · Klik Node: Detail</div>
+
+    <!-- Floating Legend Button on Mobile -->
+    <button id="btn-legend-mob" onclick="toggleMobileLegend()">ℹ Kategori Node</button>
 
     <!-- Legend -->
     <div id="legend">
-      <div class="legend-label">Tipe Entitas Graf</div>
+      <div class="legend-label">
+        <span>Tipe Entitas Graf</span>
+        <span onclick="toggleMobileLegend()" style="cursor:pointer;font-size:14px;line-height:1;" title="Tutup">×</span>
+      </div>
       <div class="legend-grid">
         <div class="legend-row"><div class="lc" style="background:var(--col-mhs)"></div>Mahasiswa</div>
         <div class="legend-row"><div class="lc" style="background:var(--col-dosen)"></div>Dosen Pembimbing</div>
         <div class="legend-row"><div class="lc" style="background:var(--col-skripsi)"></div>Skripsi</div>
         <div class="legend-row"><div class="lc" style="background:var(--col-bab)"></div>Bab Skripsi</div>
         <div class="legend-row"><div class="lc" style="background:var(--col-revisi)"></div>Catatan & Revisi</div>
-        <div class="legend-row"><div class="lc" style="background:var(--col-dok)"></div>Dokumen / Konsep</div>
+        <div class="legend-row"><div class="lc" style="background:var(--col-dok)"></div>Dokumen KRS/KHS</div>
         <div class="legend-row"><div class="lc" style="background:var(--col-kons)"></div>Konsentrasi & Riset</div>
       </div>
     </div>
 
-    <!-- Detail Panel (Inspector) -->
+    <!-- Backdrop for Mobile Bottom Sheet -->
+    <div id="panel-backdrop" onclick="closePanel()"></div>
+
+    <!-- Detail Panel (Inspector / Bottom Sheet) -->
     <div id="panel">
+      <div class="drag-handle"></div>
       <div class="panel-head">
         <div>
           <div class="panel-tags" id="p-tags"></div>
           <div class="panel-name" id="p-name"></div>
         </div>
-        <button class="close-btn" id="btn-close">×</button>
+        <button class="close-btn" id="btn-close" onclick="closePanel()">×</button>
       </div>
       <div class="panel-body">
         <div id="p-meta-sec">
@@ -625,9 +775,12 @@ function updateStat(stats) {
   const totalEdges = stats?.total_edges || edges.length;
   const totalObs   = stats?.total_observations || 0;
 
-  document.getElementById("stat-text").innerHTML =
-    `<strong>${nodes.length}</strong> entitas · <strong>${edges.length}</strong> relasi` +
-    (totalObs ? ` · <span style="color:var(--c-accent)">${totalObs} observasi</span>` : "");
+  const statEl = document.getElementById("stat-text");
+  if (statEl) {
+    statEl.innerHTML =
+      `<strong>${nodes.length}</strong> entitas · <strong>${edges.length}</strong> relasi` +
+      (totalObs ? ` · <span style="color:var(--c-accent)">${totalObs} observasi</span>` : "");
+  }
 }
 
 // ─── RENDER DISPATCHER ──────────────────────────────────────────
@@ -643,7 +796,11 @@ function render3d() {
   const c2 = document.getElementById("canvas-2d");
   c3.style.display = "block";
   c2.style.display = "none";
-  document.getElementById("hint").textContent = "Orbit: Drag mouse · Zoom: Scroll · Klik Node: Detail & Relasi";
+
+  const isMobile = window.innerWidth <= 860;
+  document.getElementById("hint").textContent = isMobile
+    ? "Drag: Putar · Pinch: Zoom · Tap Node: Detail"
+    : "Orbit: Drag mouse · Zoom: Scroll · Klik Node: Detail & Relasi";
 
   c3.innerHTML = "";
   const { nodes, edges } = filtered();
@@ -669,14 +826,14 @@ function render3d() {
     .graphData(gd)
     .backgroundColor("#09090b")
     .nodeLabel(n => `
-      <div style="background:#18181b;border:1px solid #3f3f46;padding:6px 10px;border-radius:6px;font-family:ui-sans-serif,sans-serif;font-size:12px;">
+      <div style="background:#18181b;border:1px solid #3f3f46;padding:5px 9px;border-radius:6px;font-family:ui-sans-serif,sans-serif;font-size:12px;">
         <span style="color:${n.color};font-weight:700">${n.label}</span>
         <span style="color:#71717a;font-size:10px;margin-left:4px">[${n.canonical_id || '-'}]</span><br>
         <span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;">${n.entity_type}</span>
       </div>`)
     .nodeColor(n => n.color)
     .nodeVal(n => n.val)
-    .nodeResolution(20)
+    .nodeResolution(18)
     .linkWidth(1.2)
     .linkColor(() => "rgba(63,63,70,0.8)")
     .linkDirectionalParticles(2)
@@ -685,7 +842,7 @@ function render3d() {
     .linkDirectionalParticleColor(() => "#38bdf8")
     .linkLabel(l => `<span style="background:#18181b;color:#94a3b8;padding:2px 6px;border-radius:3px;font-size:10px">${l.label}</span>`)
     .onNodeClick(n => {
-      const dist = 90;
+      const dist = isMobile ? 110 : 90;
       const mag = Math.hypot(n.x, n.y, n.z) || 1;
       const r = 1 + dist / mag;
       graph3.cameraPosition({ x: n.x * r, y: n.y * r, z: n.z * r }, n, 900);
@@ -701,10 +858,10 @@ function render3d() {
       const mat = new THREE.MeshLambertMaterial({ color: n.color, transparent: true, opacity: .92 });
       g.add(new THREE.Mesh(geo, mat));
 
-      const sp = new SpriteText(n.label.length > 24 ? n.label.slice(0, 21) + '...' : n.label);
+      const sp = new SpriteText(n.label.length > 22 ? n.label.slice(0, 19) + '...' : n.label);
       sp.color           = "#fafafa";
-      sp.textHeight      = 3.6;
-      sp.backgroundColor = "rgba(9,9,11,.8)";
+      sp.textHeight      = isMobile ? 4.0 : 3.6;
+      sp.backgroundColor = "rgba(9,9,11,.82)";
       sp.borderColor     = n.color;
       sp.borderWidth     = 0.5;
       sp.borderRadius    = 3;
@@ -736,7 +893,10 @@ function render2d() {
   const c2 = document.getElementById("canvas-2d");
   c3.style.display = "none";
   c2.style.display = "block";
-  document.getElementById("hint").textContent = "Drag: Geser graf · Scroll: Zoom · Klik Node: Detail & Relasi";
+  const isMobile = window.innerWidth <= 860;
+  document.getElementById("hint").textContent = isMobile
+    ? "Drag: Geser · Pinch: Zoom · Tap Node: Detail"
+    : "Drag: Geser graf · Scroll: Zoom · Klik Node: Detail & Relasi";
 
   c2.innerHTML = "";
   const { nodes, edges } = filtered();
@@ -745,7 +905,7 @@ function render2d() {
     const col = nodeColor(n.entity_type);
     return {
       id: String(n.id),
-      label: n.name.length > 25 ? n.name.slice(0, 22) + '...' : n.name,
+      label: n.name.length > 22 ? n.name.slice(0, 19) + '...' : n.name,
       title: `${n.name} (${n.entity_type})\n${n.canonical_id || ''}`,
       shape: n.entity_type === 'mahasiswa' ? 'dot' : (n.entity_type === 'dosen' ? 'diamond' : 'dot'),
       size: n.entity_type === 'mahasiswa' ? 22 : (n.entity_type === 'dosen' ? 24 : 14),
@@ -755,7 +915,7 @@ function render2d() {
         highlight: { background: col, border: '#ffffff' },
         hover: { background: col, border: '#38bdf8' }
       },
-      font: { color: '#f8fafc', size: 11, face: 'Plus Jakarta Sans' },
+      font: { color: '#f8fafc', size: isMobile ? 12 : 11, face: 'Plus Jakarta Sans' },
       rawNode: n
     };
   });
@@ -797,6 +957,7 @@ async function openNodeDrawer(nodeId) {
     const { node, observations, relations } = json.data;
     const col = nodeColor(node.entity_type);
     const panel = document.getElementById("panel");
+    const backdrop = document.getElementById("panel-backdrop");
 
     // Header Tags & Name
     const tags = document.getElementById("p-tags");
@@ -871,17 +1032,19 @@ async function openNodeDrawer(nodeId) {
     });
 
     panel.classList.add("open");
+    if (window.innerWidth <= 860 && backdrop) backdrop.classList.add("open");
   } catch (err) {
     console.error('Gagal membuka inspector node:', err);
   }
 }
 
 function focusNode(nodeId) {
+  const isMobile = window.innerWidth <= 860;
   if (mode === "3d" && graph3) {
     const n3 = graph3.graphData().nodes.find(n => String(n.id) === String(nodeId));
     if (n3) {
       const mag = Math.hypot(n3.x, n3.y, n3.z) || 1;
-      const r = 1 + 90 / mag;
+      const r = 1 + (isMobile ? 110 : 90) / mag;
       graph3.cameraPosition({ x: n3.x * r, y: n3.y * r, z: n3.z * r }, n3, 900);
     }
   } else if (mode === "2d" && vis2) {
@@ -891,7 +1054,15 @@ function focusNode(nodeId) {
 }
 
 function closePanel() {
-  document.getElementById("panel").classList.remove("open");
+  const panel = document.getElementById("panel");
+  const backdrop = document.getElementById("panel-backdrop");
+  if (panel) panel.classList.remove("open");
+  if (backdrop) backdrop.classList.remove("open");
+}
+
+function toggleMobileLegend() {
+  const leg = document.getElementById("legend");
+  if (leg) leg.classList.toggle("mobile-open");
 }
 
 function escHtml(s) {
@@ -911,7 +1082,7 @@ async function syncGraph(event) {
   } catch (err) {
     alert('Gagal menyinkronkan: ' + err.message);
   } finally {
-    if (btn) btn.textContent = '⚡ Auto-Sync';
+    if (btn) btn.textContent = btn.id.includes('mob') ? '⚡ Sync' : '⚡ Auto-Sync';
   }
 }
 
@@ -932,22 +1103,34 @@ document.getElementById("btn-2d").addEventListener("click", () => {
   render();
 });
 
-// Spin
-document.getElementById("btn-spin").addEventListener("click", function() {
+// Spin (Desktop & Mobile)
+function toggleSpin() {
   spinning = !spinning;
-  this.classList.toggle("active-spin", spinning);
-  this.querySelector("svg").style.opacity = spinning ? "1" : ".35";
-});
+  const btnD = document.getElementById("btn-spin");
+  const btnM = document.getElementById("btn-mob-spin");
+  if (btnD) {
+    btnD.classList.toggle("active-spin", spinning);
+    btnD.querySelector("svg").style.opacity = spinning ? "1" : ".35";
+  }
+  if (btnM) {
+    btnM.classList.toggle("active-spin", spinning);
+    btnM.style.borderColor = spinning ? "var(--c-accent)" : "";
+    btnM.style.color = spinning ? "var(--c-accent)" : "";
+  }
+}
+document.getElementById("btn-spin").addEventListener("click", toggleSpin);
+document.getElementById("btn-mob-spin").addEventListener("click", toggleSpin);
 
-// Center
-document.getElementById("btn-center").addEventListener("click", () => {
+// Center (Desktop & Mobile)
+function doCenter() {
   if (mode === "3d" && graph3) graph3.cameraPosition({ x: 0, y: 0, z: 280 }, { x: 0, y: 0, z: 0 }, 800);
   if (mode === "2d" && vis2) vis2.fit({ animation: { duration: 600 } });
-});
+}
+document.getElementById("btn-center").addEventListener("click", doCenter);
+document.getElementById("btn-mob-center").addEventListener("click", doCenter);
 
 // Reload & Close
 document.getElementById("btn-reload").addEventListener("click", loadGraphData);
-document.getElementById("btn-close").addEventListener("click", closePanel);
 
 // Live Search
 document.getElementById("search").addEventListener("input", e => {
@@ -964,15 +1147,20 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") closePanel();
 });
 
-// Filter Pills
-document.querySelectorAll("#type-pills .pill").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#type-pills .pill").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    typeF = btn.dataset.type;
-    render();
+// Filter Pills (Both Desktop Header and Mobile Toolbar)
+function bindTypePills() {
+  document.querySelectorAll("[data-type]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const type = btn.dataset.type;
+      document.querySelectorAll("[data-type]").forEach(b => {
+        b.classList.toggle("active", b.dataset.type === type);
+      });
+      typeF = type;
+      render();
+    });
   });
-});
+}
+bindTypePills();
 
 // Initial Load
 loadGraphData();

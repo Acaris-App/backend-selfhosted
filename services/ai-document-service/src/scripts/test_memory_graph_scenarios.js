@@ -95,12 +95,13 @@ async function runScenarios() {
     console.log('▶ [Scenario 4] Linking Primary Advisor & Lecturer Expertise...');
     const dosenUtama = await graphRepository.upsertEntity({
       entity_type: 'dosen',
-      name: 'Dr. Ir. Hendra Kusuma, M.T.',
-      canonical_id: 'dsn:198005122005011002',
+      name: 'Puput Budi Wintoro, S.Kom., M.T.I.',
+      canonical_id: 'dsn:198410312019031004',
       properties: {
-        nip: '198005122005011002',
-        jabatan: 'Lektor Kepala',
-        bidang_keahlian: ['Artificial Intelligence', 'Knowledge Representation', 'Distributed Systems']
+        nip: '198410312019031004',
+        jabatan: 'Dosen Pembimbing Skripsi',
+        bidang_keahlian: ['Artificial Intelligence', 'Web Programming', '3D Modelling'],
+        instansi: 'S1 Teknik Informatika Universitas Lampung'
       }
     });
 
@@ -231,7 +232,7 @@ async function runScenarios() {
     await graphService.recordChatObservation({
       npm: '140810200001',
       message: 'Aca, apakah Bab 3 saya sudah siap diajukan untuk bimbingan berikutnya?',
-      reply: 'Berdasarkan Memory Graph kamu, revisi metodologi latency Bab 3 sudah diselesaikan dan benchmark 18ms sudah terlampir. Kamu siap booking bimbingan Bab 4 dengan Pak Hendra!',
+      reply: 'Berdasarkan Memory Graph kamu, revisi metodologi latency Bab 3 sudah diselesaikan dan benchmark 18ms sudah terlampir. Kamu siap booking bimbingan Bab 4 dengan Pak Puput Budi Wintoro!',
       sessionId: 'S-20261003-TEST01'
     });
     console.log('  ✓ Chat conversation observation attached to student entity.\n');
