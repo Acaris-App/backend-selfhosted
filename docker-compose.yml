@@ -43,7 +43,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - JWT_SECRET=${JWT_SECRET}
       - DB_HOST=acaris-db
       - DB_PORT=5432
       - DB_USER=acaris_user
@@ -73,7 +73,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - JWT_SECRET=${JWT_SECRET}
       - DB_HOST=acaris-db
       - DB_PORT=5432
       - DB_USER=acaris_user
@@ -97,7 +97,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - JWT_SECRET=${JWT_SECRET}
       - DB_HOST=acaris-db
       - DB_PORT=5432
       - DB_USER=acaris_user

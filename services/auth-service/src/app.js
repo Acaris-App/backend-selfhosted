@@ -66,9 +66,17 @@ const userRoutes = require('./routes/user.routes');
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 
-// Menyajikan folder uploads secara statis di VPS untuk foto profil jika STORAGE_TYPE=local
+// ================= UPLOADS & PROTECTED DOCUMENT ROUTES =================
 const path = require('path');
-app.use('/uploads', express.static(path.resolve('/app/uploads')));
+const { authenticate } = require('./middlewares/auth.middleware');
+const { serveAcademicDocument } = require('./utils/serve-document');
+
+// Foto profil (avatars) diizinkan statis
+app.use('/uploads/profile-pictures', express.static(path.resolve('/app/uploads/profile-pictures')));
+
+// Dokumen akademik WAJIB terautentikasi dan melalui pengecekan kepemilikan
+app.get('/uploads/documents/:filename', authenticate, serveAcademicDocument);
+app.get('/uploads/:userId/:filename', authenticate, serveAcademicDocument);
 
 // ================= ERROR HANDLER =================
 app.use(errorHandler);

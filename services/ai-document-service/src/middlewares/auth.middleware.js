@@ -3,6 +3,12 @@ const redis = require('../config/redis');
 
 exports.authenticate = async (req, res, next) => {
   try {
+    // 0. Support internal n8n system callback secret
+    if (process.env.N8N_ACADEMIC_CALLBACK_SECRET && req.get('x-academic-callback-secret') === process.env.N8N_ACADEMIC_CALLBACK_SECRET) {
+      req.user = { id: 0, role: 'system', name: 'n8n-system' };
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {

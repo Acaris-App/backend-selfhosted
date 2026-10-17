@@ -1,22 +1,23 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middlewares/auth.middleware');
+const { authorize } = require('../middlewares/role.middleware');
 const graphController = require('../controllers/graph.controller');
 
-// Visualization HTML Page (Public access for dashboard/inspector)
-router.get('/visualizer', graphController.getGraphVisualizer);
+// Require authentication for ALL graph endpoints (Zero Unauthenticated Access)
+router.use(authenticate);
 
-// Graph Data Query (JSON nodes, edges, statistics)
+// Visualization & Inspection (Authenticated users only)
+router.get('/visualizer', graphController.getGraphVisualizer);
 router.get('/', graphController.getGraphData);
 router.get('/stats', graphController.getGraphData);
 router.get('/node/:id', graphController.getNodeDetails);
 
-// Graph Mutations
-router.post('/entity', graphController.createEntity);
-router.post('/relation', graphController.createRelation);
-router.post('/observation', graphController.createObservation);
-
-// Sync operations
-router.post('/sync/student/:npm', graphController.syncStudent);
-router.post('/sync/all', graphController.syncAll);
+// Mutations & Sync (Admin & System only)
+router.post('/entity', authorize('admin', 'system'), graphController.createEntity);
+router.post('/relation', authorize('admin', 'system'), graphController.createRelation);
+router.post('/observation', authorize('admin', 'system'), graphController.createObservation);
+router.post('/sync/student/:npm', authorize('admin', 'dosen', 'system'), graphController.syncStudent);
+router.post('/sync/all', authorize('admin', 'system'), graphController.syncAll);
 
 module.exports = router;

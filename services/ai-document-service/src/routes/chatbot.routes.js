@@ -7,19 +7,19 @@ const chatbotController = require('../controllers/chatbot.controller');
 const graphController = require('../controllers/graph.controller');
 
 // ================= ACARIS MEMORY GRAPH ENDPOINTS =================
-// Visualizer Web UI (Interactive D3/Vis.js Network)
-router.get('/graph/visualizer', graphController.getGraphVisualizer);
+// Visualizer Web UI (Interactive D3/Vis.js Network - Authenticated)
+router.get('/graph/visualizer', authenticate, graphController.getGraphVisualizer);
 
-// Graph Data & Subgraph Queries
-router.get('/graph', graphController.getGraphData);
-router.get('/graph/node/:id', graphController.getNodeDetails);
+// Graph Data & Subgraph Queries (Protected)
+router.get('/graph', authenticate, graphController.getGraphData);
+router.get('/graph/node/:id', authenticate, graphController.getNodeDetails);
 
-// Graph Mutations & Data Sync
-router.post('/graph/sync/all', graphController.syncAll);
-router.post('/graph/sync/student/:npm', graphController.syncStudent);
-router.post('/graph/entity', graphController.createEntity);
-router.post('/graph/relation', graphController.createRelation);
-router.post('/graph/observation', graphController.createObservation);
+// Graph Mutations & Data Sync (Admin & System only)
+router.post('/graph/sync/all', authenticate, authorize('admin', 'system'), graphController.syncAll);
+router.post('/graph/sync/student/:npm', authenticate, authorize('admin', 'dosen', 'system'), graphController.syncStudent);
+router.post('/graph/entity', authenticate, authorize('admin', 'system'), graphController.createEntity);
+router.post('/graph/relation', authenticate, authorize('admin', 'system'), graphController.createRelation);
+router.post('/graph/observation', authenticate, authorize('admin', 'system'), graphController.createObservation);
 
 // ================= EXISTING CHATBOT ENDPOINTS (100% UNCHANGED) =================
 

@@ -70,8 +70,14 @@ app.use('/admin', adminRoutes);
 app.use('/academic', academicRoutes);
 app.use('/', academicRoutes);
 
-// Menyajikan folder uploads di VPS secara lokal jika STORAGE_TYPE=local
-app.use('/uploads', express.static(require('path').resolve('/app/uploads')));
+// ================= PROTECTED DOCUMENT DOWNLOAD ROUTES =================
+const { authenticate } = require('./middlewares/auth.middleware');
+const { serveAcademicDocument } = require('./utils/serve-document');
+
+app.get('/uploads/documents/:filename', authenticate, serveAcademicDocument);
+app.get('/uploads/:userId/:filename', authenticate, serveAcademicDocument);
+app.get('/document/uploads/documents/:filename', authenticate, serveAcademicDocument);
+app.get('/document/uploads/:userId/:filename', authenticate, serveAcademicDocument);
 
 // ================= ERROR HANDLER =================
 app.use(errorHandler);

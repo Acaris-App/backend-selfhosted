@@ -15,4 +15,11 @@ router.delete('/delete/:document_id', authenticate, documentController.deleteDoc
 
 router.get('/check', authenticate, documentController.checkCompleteness);
 
+// ================= PROTECTED DOWNLOAD ROUTES =================
+const { serveAcademicDocument } = require('../utils/serve-document');
+router.get('/uploads/documents/:filename', authenticate, serveAcademicDocument);
+router.get('/uploads/:userId/:filename', authenticate, serveAcademicDocument);
+router.get('/download/documents/:filename', authenticate, serveAcademicDocument);
+router.get('/download/:userId/:filename', authenticate, serveAcademicDocument);
+
 module.exports = router;

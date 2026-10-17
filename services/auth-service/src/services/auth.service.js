@@ -138,7 +138,8 @@ exports.login = async ({ email, password, ip }) => {
 
   const token = jwt.generateToken({
     id: user.id,
-    role: user.role
+    role: user.role,
+    npm_nip: user.npm_nip
   });
 
   return {
@@ -462,7 +463,8 @@ exports.verifyRegisterOTP = async ({ email, code }) => {
 
   const token = jwt.generateToken({
     id: user.id,
-    role: user.role
+    role: user.role,
+    npm_nip: user.npm_nip
   });
 
   return {
