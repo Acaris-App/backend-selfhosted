@@ -44,17 +44,6 @@ const generateOTPTemplate = (code) => {
 
     <!-- Body Content -->
     <div style="padding: 28px 24px; background-color: #ffffff; text-align: center;">
-      
-      <!-- Aca Mascot Assistant Badge -->
-      <div style="margin-bottom: 20px;">
-        <img src="https://marsy.my.id/portofolio/img/aca_avatar.png" 
-             alt="Aca - Academic Care Assistant" 
-             style="width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 4px 12px rgba(37,99,235,0.15); border: 2.5px solid #3b82f6; display: block; margin: 0 auto 8px auto;">
-        <span style="font-size: 12px; font-weight: 600; color: #2563eb; background-color: #eff6ff; padding: 4px 12px; border-radius: 9999px; display: inline-block; border: 1px solid #dbeafe;">
-          Aca &bull; Academic Care Assistant
-        </span>
-      </div>
-
       <h2 style="color: #0f172a; margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">Verifikasi Kode OTP</h2>
       <p style="color: #64748b; font-size: 14px; margin: 0 0 24px 0; line-height: 1.5;">
         Gunakan kode verifikasi berikut untuk melanjutkan proses autentikasi Anda di sistem Acaris.
@@ -125,7 +114,7 @@ exports.sendOTPEmail = async (to, code, type = 'login') => {
   };
   const subject = subjectMap[type] || "OTP Acaris";
   const htmlContent = generateOTPTemplate(code);
-  const textContent = `Halo! Kode OTP Acaris Anda adalah: ${code}. Berlaku selama 5 menit. Jika bukan Anda yang meminta, abaikan pesan ini. - Aca Academic Care Assistant`;
+  const textContent = `Kode OTP Acaris Anda adalah: ${code}. Berlaku selama 5 menit. Jika bukan Anda yang meminta, abaikan pesan ini.`;
 
   let sentSuccessfully = false;
   let lastError = null;
