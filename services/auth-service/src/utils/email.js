@@ -13,6 +13,10 @@ const getEmailUser = () => {
   return (process.env.EMAIL_USER || 'marsneedduitbanget@gmail.com').trim();
 };
 
+const getEmailFrom = () => {
+  return (process.env.EMAIL_FROM || 'no-reply@acaris.my.id').trim();
+};
+
 // Nodemailer transport instance
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -28,34 +32,49 @@ const createTransporter = () => {
 // ================= EMAIL TEMPLATE =================
 const generateOTPTemplate = (code) => {
   return `
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #d9d9d9; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
 
-    <div style="background-color: #ffffff; padding: 30px 20px 15px 20px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+    <!-- Brand Header -->
+    <div style="background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); padding: 32px 24px 20px 24px; text-align: center; border-bottom: 1px solid #f1f5f9;">
       <img src="https://raw.githubusercontent.com/Aku-Mars/gambar/refs/heads/main/logo-acaris.png" 
            alt="Acaris Logo" 
-           style="width: 80px; height: auto; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
-      <h1 style="color: #1A1A1A; margin: 0; font-size: 24px; font-weight: 600;">Acaris</h1>
+           style="width: 72px; height: auto; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
+      <h1 style="color: #0f172a; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Acaris</h1>
     </div>
 
-    <div style="padding: 30px; background-color: #ffffff; text-align: center;">
-      <h2 style="color: #1A1A1A; margin-bottom: 10px; font-weight: 600;">Verifikasi Kode OTP</h2>
-      <p style="color: #666666; font-size: 16px; margin-bottom: 25px;">
-        Gunakan kode di bawah ini untuk melanjutkan proses Anda.
-      </p>
-
-      <div style="background-color: #f3f3f3; padding: 15px 25px; border-radius: 8px; display: inline-block; border: 1px solid #d9d9d9;">
-        <span style="font-size: 32px; font-weight: bold; color: #1A1A1A; letter-spacing: 5px;">${code}</span>
+    <!-- Body Content -->
+    <div style="padding: 28px 24px; background-color: #ffffff; text-align: center;">
+      
+      <!-- Aca Mascot Assistant Badge -->
+      <div style="margin-bottom: 20px;">
+        <img src="https://marsy.my.id/portofolio/img/aca_avatar.png" 
+             alt="Aca - Academic Care Assistant" 
+             style="width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 4px 12px rgba(37,99,235,0.15); border: 2.5px solid #3b82f6; display: block; margin: 0 auto 8px auto;">
+        <span style="font-size: 12px; font-weight: 600; color: #2563eb; background-color: #eff6ff; padding: 4px 12px; border-radius: 9999px; display: inline-block; border: 1px solid #dbeafe;">
+          Aca &bull; Academic Care Assistant
+        </span>
       </div>
 
-      <p style="color: #9d9999; font-size: 14px; margin-top: 25px;">
-        Kode ini hanya berlaku selama <strong>5 menit</strong>.<br>
-        Jika Anda tidak merasa melakukan permintaan ini, abaikan email ini.
+      <h2 style="color: #0f172a; margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">Verifikasi Kode OTP</h2>
+      <p style="color: #64748b; font-size: 14px; margin: 0 0 24px 0; line-height: 1.5;">
+        Gunakan kode verifikasi berikut untuk melanjutkan proses autentikasi Anda di sistem Acaris.
+      </p>
+
+      <!-- OTP Code Badge -->
+      <div style="background-color: #f8fafc; padding: 16px 28px; border-radius: 12px; display: inline-block; border: 1.5px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+        <span style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 700; color: #0f172a; letter-spacing: 6px; display: inline-block;">${code}</span>
+      </div>
+
+      <p style="color: #94a3b8; font-size: 13px; margin: 24px 0 0 0; line-height: 1.5;">
+        Kode ini hanya berlaku selama <strong style="color: #475569;">5 menit</strong>.<br>
+        Jika Anda tidak pernah meminta kode ini, abaikan pesan ini dengan aman.
       </p>
     </div>
 
-    <div style="background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #d9d9d9;">
-      <p style="color: #7f7f7f; font-size: 12px; margin: 0;">
-        &copy; 2026 Acaris System. All rights reserved.
+    <!-- Footer -->
+    <div style="background-color: #f8fafc; padding: 16px; text-align: center; border-top: 1px solid #f1f5f9;">
+      <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+        &copy; 2026 Acaris Academic System. All rights reserved.
       </p>
     </div>
 
@@ -66,16 +85,18 @@ const generateOTPTemplate = (code) => {
 // ================= SEND VIA CLOUDFLARE RELAY =================
 async function sendViaRelay(to, subject, html, text) {
   const relayUrl = process.env.MAIL_RELAY_URL || 'https://mail-relay.freyxylia.workers.dev';
-  const relayKey = process.env.MAIL_RELAY_KEY || 'flowra-relay-secret-2026';
+  const relayKey = process.env.MAIL_RELAY_KEY || '060a88da40c2cb236ee1c02b1f84fe627b2b71d8d15efb67318997df559dfcb2';
   
   const payload = {
     user: getEmailUser(),
     pass: getCleanEmailPass(),
     to,
+    from: getEmailFrom(),
+    fromName: 'Acaris System',
+    replyTo: getEmailFrom(),
     subject,
     html,
-    text,
-    fromName: 'Acaris System'
+    text
   };
 
   const res = await fetch(relayUrl, {
@@ -97,7 +118,6 @@ async function sendViaRelay(to, subject, html, text) {
 
 // ================= SEND OTP EMAIL =================
 exports.sendOTPEmail = async (to, code, type = 'login') => {
-
   const subjectMap = {
     login: "OTP Login Acaris",
     register: "OTP Verifikasi Akun",
@@ -105,7 +125,7 @@ exports.sendOTPEmail = async (to, code, type = 'login') => {
   };
   const subject = subjectMap[type] || "OTP Acaris";
   const htmlContent = generateOTPTemplate(code);
-  const textContent = `Kode OTP Acaris Anda adalah: ${code}. Berlaku selama 5 menit. Jika bukan Anda yang meminta, abaikan pesan ini.`;
+  const textContent = `Halo! Kode OTP Acaris Anda adalah: ${code}. Berlaku selama 5 menit. Jika bukan Anda yang meminta, abaikan pesan ini. - Aca Academic Care Assistant`;
 
   let sentSuccessfully = false;
   let lastError = null;
@@ -116,8 +136,9 @@ exports.sendOTPEmail = async (to, code, type = 'login') => {
     const info = await transporter.sendMail({
       from: {
         name: 'Acaris System',
-        address: getEmailUser()
+        address: getEmailFrom()
       },
+      replyTo: getEmailFrom(),
       to,
       subject,
       text: textContent,
@@ -148,7 +169,7 @@ exports.sendOTPEmail = async (to, code, type = 'login') => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         to,
-        from: 'no-reply@acaris.my.id',
+        from: getEmailFrom(),
         subject,
         body: textContent,
         code
